@@ -1,0 +1,32 @@
+# Dependencies, generated bundles and local verification
+node_modules/
+/dist/
+/dist-electron/
+/release/
+/evidence/
+/vendor/yt-dlp
+/vendor/yt-dlp.download
+*.log
+.DS_Store
+
+# Local credentials and account data
+.env
+.env.*
+**/secrets/
+**/credentials*
+*.key
+*.pem
+*.p12
+*.pfx
+*.mobileprovision
+
+# Historical local delivery records; public docs are explicit
+/docs/*
+!/docs/USER-GUIDE.md
+!/docs/IMPLEMENTATION.md
+!/docs/TESTING.md
+!/docs/RELEASING.md
+!/docs/ROADMAP.md
+!/docs/releases/
+/scripts/package-friends.mjs
+/assets/Clipkeep.icns

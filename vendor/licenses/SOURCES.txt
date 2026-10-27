@@ -1,0 +1,12 @@
+yt-dlp 2026.08.19
+The upstream universal macOS executable is included without modification.
+Upstream release, source archives and build instructions:
+https://github.com/yt-dlp/yt-dlp/releases/tag/2026.08.19
+https://github.com/yt-dlp/yt-dlp/tree/2026.08.19
+https://github.com/yt-dlp/yt-dlp/blob/2026.08.19/bundle/pyinstaller.py
+https://github.com/yt-dlp/yt-dlp/blob/2026.08.19/THIRD_PARTY_LICENSES.txt
+
+yt-dlp itself is Unlicense; the standalone executable includes third-party code
+and the combined standalone distribution is GPLv3+. See the included upstream
+UNLICENSE and THIRD_PARTY_LICENSES text for dependency notices and terms.
+No FFmpeg, ffprobe or Node.js executables are redistributed in this application package.

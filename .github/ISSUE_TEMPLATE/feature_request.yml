@@ -1,0 +1,11 @@
+name: 功能建议
+description: 描述实际使用场景与期望行为
+title: '[Feature] '
+body:
+  - type: textarea
+    id: scenario
+    attributes:
+      label: 使用场景与期望结果
+      description: 当前如何操作？希望哪个步骤发生什么变化？
+    validations:
+      required: true

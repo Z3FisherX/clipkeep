@@ -1,0 +1,58 @@
+{
+  "name": "clipkeep",
+  "productName": "拾片",
+  "version": "0.6.1",
+  "description": "个人 Mac 视频与音频下载工具",
+  "private": true,
+  "type": "module",
+  "main": "dist-electron/main.cjs",
+  "scripts": {
+    "build": "tsc --noEmit && vite build && node scripts/build-electron.mjs",
+    "start": "electron .",
+    "dev": "npm run build && electron .",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint . --max-warnings 0",
+    "test": "node --import tsx --test tests/*.test.ts",
+    "test:ui": "node scripts/smoke.mjs",
+    "test:media": "node --import tsx scripts/local-media.ts",
+    "test:platform-media": "node --import tsx scripts/multiplatform-media.ts",
+    "test:platform-ui": "node scripts/multiplatform-smoke.mjs",
+    "probe:platforms": "node --import tsx scripts/multiplatform-probe.ts",
+    "test:expansion-media": "node --import tsx scripts/expansion-media.ts",
+    "test:expansion-ui": "node scripts/expansion-smoke.mjs",
+    "probe:expansion": "node --import tsx scripts/expansion-probe.ts",
+    "package": "npm run build && node scripts/package.mjs",
+    "test:queue-ui": "node scripts/queue-smoke.mjs",
+    "test:access-ui": "node scripts/access-smoke.mjs",
+    "tools:prepare": "node scripts/release/prepare-tools.mjs",
+    "check:public": "node scripts/release/check-public.mjs",
+    "check": "npm run check:public && npm run audit:dependencies && npm run typecheck && npm run lint && npm test && npm run build",
+    "release:archive": "node scripts/release/archive.mjs",
+    "test:layout": "node scripts/desktop-layout-smoke.mjs",
+    "audit:dependencies": "npm audit --audit-level=high"
+  },
+  "dependencies": {
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "zod": "4.6.6"
+  },
+  "devDependencies": {
+    "@electron/packager": "^20.3.0",
+    "@eslint/js": "^9.39.0",
+    "@types/node": "^24.0.0",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "electron": "44.9.3",
+    "esbuild": "^0.28.2",
+    "eslint": "^9.39.0",
+    "playwright": "^1.56.0",
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.0",
+    "typescript-eslint": "^8.46.0",
+    "vite": "^7.2.0"
+  },
+  "license": "MIT",
+  "engines": {
+    "node": ">=24 <25"
+  }
+}

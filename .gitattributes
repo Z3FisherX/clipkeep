@@ -1,0 +1,6 @@
+* text=auto eol=lf
+*.png binary
+*.icns binary
+
+# Preserve upstream license formatting verbatim
+vendor/licenses/* -whitespace

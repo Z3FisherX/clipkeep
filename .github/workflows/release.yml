@@ -1,0 +1,39 @@
+name: Prepare release
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  package:
+    name: Verify and package Apple Silicon app
+    runs-on: macos-15
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '24'
+          cache: npm
+      - run: test "$(uname -m)" = arm64
+      - run: npm ci
+      - run: brew list ffmpeg node@24 || brew install ffmpeg node@24
+      - run: npm run tools:prepare
+      - run: npm run check
+      - run: npm run test:ui && npm run test:queue-ui && npm run test:layout
+      - run: node scripts/package.mjs
+      - name: Verify packaged app
+        run: node scripts/packaged-smoke.mjs 'release/拾片-darwin-arm64/拾片.app/Contents/MacOS/拾片' evidence/packaged-release
+      - run: npm run release:archive
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: clipkeep-mac-arm64
+          path: |
+            release/Clipkeep-*-mac-arm64.zip
+            release/SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 14

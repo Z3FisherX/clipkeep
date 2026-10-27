@@ -1,0 +1,3 @@
+*{box-sizing:border-box}body{margin:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#f3f6f7;color:#173f38}header{height:128px;padding:16px 22px;display:flex;align-items:center;justify-content:space-between;gap:16px;border-bottom:1px solid #d9e3df}strong{display:block;font-size:17px;margin-bottom:8px}span{color:#617b75;font-size:13px}nav{display:grid;grid-template-columns:repeat(2,max-content);gap:9px;flex-shrink:0}button{padding:10px 14px;border:1px solid #cadbd4;border-radius:8px;background:#fff;color:#244c42;cursor:pointer}#authorize{background:#205b4d;color:white;border-color:#205b4d}
+
+#origin{margin-left:12px;color:#62766e;font-size:11px}header nav{flex-shrink:0}
