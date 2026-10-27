@@ -4,6 +4,6 @@
 
 报告请包含受影响版本、最小复现、影响范围和经脱敏的证据。使用自有或受控测试资源，保留账号、Cookie、完整签名地址与系统凭据的私密性。
 
-仓库启用 GitHub Private vulnerability reporting 后，通过 **Security → Report a vulnerability** 提交敏感细节。仓库准备清单包含该功能的启用项。公开 Issue 适合一般功能故障；涉及利用细节的报告通过私密渠道提交。
+通过仓库 **Security → Report a vulnerability** 私密提交敏感细节，入口见 [安全报告](https://github.com/Z3FisherX/clipkeep/security/advisories/new)。公开 Issue 适合一般功能故障；涉及利用细节的报告通过私密渠道提交。
 
 维护者确认报告后评估影响、准备回归测试和修复，协调版本说明与披露时间。处理进度以实际维护者回复为准。

@@ -8,7 +8,7 @@
 
 ## 首次打开
 
-1. 打开发行包中的 `拾片.app`，或打开源码构建生成的 `release/拾片-darwin-arm64/拾片.app`。
+1. 从 [0.6.1 发布页](https://github.com/Z3FisherX/clipkeep/releases/tag/v0.6.1) 下载并解压 App；进入 `拾片-darwin-arm64` 文件夹，将 `拾片.app` 拖入“应用程序”并打开。源码构建产物位于 `release/拾片-darwin-arm64/拾片.app`。
 2. 点击窗口底部的 **设置与帮助**，查看工具状态。
 3. 确认 yt-dlp、FFmpeg、ffprobe 和 Node 均已就绪。
 4. 点击 **更换目录**，选择视频与音频的保存位置。

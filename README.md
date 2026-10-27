@@ -4,6 +4,8 @@
 
 当前版本：**0.6.1**，预发布试用。主界面采用固定双栏：左侧准备下载，右侧管理队列与历史。
 
+[下载 Apple Silicon 版](https://github.com/Z3FisherX/clipkeep/releases/download/v0.6.1/Clipkeep-0.6.1-mac-arm64.zip) · [SHA256 校验文件](https://github.com/Z3FisherX/clipkeep/releases/download/v0.6.1/SHA256SUMS.txt) · [版本发布页](https://github.com/Z3FisherX/clipkeep/releases/tag/v0.6.1)
+
 [使用指南](docs/USER-GUIDE.md) · [更新记录](CHANGELOG.md) · [开发与测试](docs/TESTING.md) · [发布流程](docs/RELEASING.md)
 
 ## 功能
@@ -26,7 +28,7 @@
 | 本机工具 | FFmpeg、ffprobe、Node.js 24 |
 | 签名 | 当前发行流程采用本地 ad-hoc 签名 |
 
-发行包通过 GitHub Releases 提供：解压后将 `拾片.app` 拖入“应用程序”。首次打开时按 macOS 的来源确认提示操作。当前阶段的下载入口以仓库 Releases 中实际发布的版本为准。
+从上方入口下载 ZIP；解压后进入 `拾片-darwin-arm64` 文件夹，将 `拾片.app` 拖入“应用程序”。首次打开时按 macOS 的来源确认提示操作。
 
 使用 Homebrew 准备本机工具：
 
@@ -40,9 +42,11 @@ brew install ffmpeg node@24
 
 ## 从源码运行
 
-使用 Node.js 24、npm 和 Git，在源码根目录执行：
+使用 Node.js 24、npm 和 Git，获取源码后执行：
 
 ```sh
+git clone https://github.com/Z3FisherX/clipkeep.git
+cd clipkeep
 npm ci
 npm run tools:prepare
 npm run dev
@@ -94,4 +98,4 @@ App 输出到 `release/拾片-darwin-arm64/拾片.app`；ZIP 和 SHA256 清单�
 
 项目原创代码和文档采用 [MIT](LICENSE)。第三方组件按各自许可提供，详见 [第三方声明](THIRD_PARTY_NOTICES.md)。图标生成说明位于 [素材目录](assets/brand/generation.md)。
 
-功能建议和问题反馈使用仓库 Issues。安全问题的报告范围与处理方式见 [SECURITY.md](SECURITY.md)。后续重点见 [路线图](docs/ROADMAP.md)。
+功能建议和问题反馈使用 [Issues](https://github.com/Z3FisherX/clipkeep/issues)。安全问题的报告范围与处理方式见 [SECURITY.md](SECURITY.md)。后续重点见 [路线图](docs/ROADMAP.md)。
