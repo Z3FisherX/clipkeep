@@ -32,7 +32,7 @@
     "audit:dependencies": "npm audit --audit-level=high"
   },
   "dependencies": {
-    "react": "^19.2.0",
+    "react": "^19.3.1",
     "react-dom": "^19.2.0",
     "zod": "4.6.6"
   },
