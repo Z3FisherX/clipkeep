@@ -25,6 +25,7 @@ export function BatchPanel({ c, onPrepare }: { c: Controller; onPrepare?: () => 
     finally { working.current = false; setBusy(false); }
   };
   const read = async (item: Item, index?: number) => {
+    patch(item.id, { info: undefined, qualityId: undefined, selected: index, original: false, error: undefined });
     const result = await window.desktop.inspect({ url: item.url, useBrowser: false, videoIndex: index });
     if (result.ok) patch(item.id, { info: result.value, qualityId: preferredQuality(result.value, c.state.preferences?.quality ?? '1080')?.id,
       selected: index, error: undefined, original: false });

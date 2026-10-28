@@ -28,4 +28,5 @@ jobs:
       - run: npm run check
       - run: npm run test:ui
       - run: npm run test:queue-ui
+      - run: npm run test:batch-ui
       - run: npm run test:layout

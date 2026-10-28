@@ -3,6 +3,7 @@ import { Duplex, type Stream } from 'node:stream';
 import { spawn } from 'node:child_process';
 import { AppError } from './validation';
 import { classifyFailure } from './failures';
+import { ProcessOutput } from './process/output';
 import type { PlatformId } from '../shared/platforms';
 export { classifyFailure } from './failures';
 export interface RunOptions {
@@ -29,7 +30,8 @@ export const run: Runner = async (executable, args, options = {}) => {
         TMPDIR: process.env.TMPDIR, LANG: 'en_US.UTF-8' } });
     attachInput(child.stdio[3], options.pipeInput); attachInput(child.stdio[4], options.mediaInput);
     if (child.stdin) { child.stdin.on('error', () => {}); child.stdin.end(options.stdin); }
-    let stdout = '', stderr = '', pending = '';
+    const stdout = new ProcessOutput(options.maxOutput ?? 8_000_000, options.onLine);
+    let stderr = '';
     let stopped: AppError | undefined;
     let killTimer: ReturnType<typeof setTimeout> | undefined;
     const kill = (signal: NodeJS.Signals) => {
@@ -47,18 +49,19 @@ export const run: Runner = async (executable, args, options = {}) => {
     options.signal?.addEventListener('abort', cancel, { once: true });
     if (options.signal?.aborted) cancel();
     child.stdout!.on('data', (chunk: Buffer) => {
-      stdout += chunk.toString(); pending += chunk.toString();
-      if (stdout.length > (options.maxOutput ?? 8_000_000)) stop(new AppError('OUTPUT_LIMIT', '工具返回的数据异常过大，已停止。'));
-      const lines = pending.split(/[\r\n]/); pending = lines.pop() ?? '';
-      for (const line of lines) options.onLine?.(line);
+      if (stopped) return;
+      try { stdout.write(chunk); }
+      catch (error) { stop(error instanceof AppError ? error : new AppError('TOOL_FAILED', '工具输出处理需要重试。')); }
     });
-    child.stderr!.on('data', (chunk: Buffer) => { stderr = (stderr + chunk.toString()).slice(-32_000); });
+    child.stderr!.setEncoding('utf8').on('data', (chunk: string) => { stderr = (stderr + chunk).slice(-32_000); });
     child.on('error', () => { cleanup(); reject(new AppError('TOOL_MISSING', '工具无法启动，请重新检测依赖和执行权限。')); });
     child.on('close', code => {
       cleanup();
       if (stopped) reject(stopped);
       else if (code !== 0 || (options.failOnStderr && stderr.trim())) reject(classifyFailure(stderr, args.includes('--cookies-from-browser'), options.platform));
-      else resolve(stdout);
+      else {
+        try { resolve(stdout.finish()); } catch { reject(new AppError('TOOL_FAILED', '工具输出处理需要重试。')); }
+      }
     });
   });
 };

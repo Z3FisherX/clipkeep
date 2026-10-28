@@ -23,6 +23,7 @@
     "probe:expansion": "node --import tsx scripts/expansion-probe.ts",
     "package": "npm run build && node scripts/package.mjs",
     "test:queue-ui": "node scripts/queue-smoke.mjs",
+    "test:batch-ui": "node scripts/batch-smoke.mjs",
     "test:access-ui": "node scripts/access-smoke.mjs",
     "tools:prepare": "node scripts/release/prepare-tools.mjs",
     "check:public": "node scripts/release/check-public.mjs",

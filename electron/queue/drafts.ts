@@ -28,7 +28,7 @@ export async function enqueue(model: QueueModel, input: EnqueueInput): Promise<T
     throw new AppError('AUTH_SCOPE', '访问方式已更新，请重新读取视频');
   checkSelection(draft.info, input);
   const old = input.taskId ? model.task(input.taskId) : undefined;
-  if (old && (['running', 'cancelling'].includes(old.status) || old.identity !== draft.identity))
+  if (old && (model.active?.id === old.id || ['running', 'cancelling'].includes(old.status) || old.identity !== draft.identity))
     throw new AppError('IDENTITY', '请为这个任务读取原视频及对应条目');
   const duplicate = model.state.tasks.find(t => t.identity === draft.identity && t.id !== old?.id);
   if (duplicate && !input.allowDuplicate) throw new AppError('DUPLICATE', `${isFinished(duplicate) ? '历史中已有' : '队列中已有'}「${duplicate.info.title}」，可定位记录或选择仍然添加`);
