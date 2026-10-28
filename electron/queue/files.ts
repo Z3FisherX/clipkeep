@@ -21,7 +21,7 @@ export async function taskDirectory(task: TaskRecord) {
   const directory = await realpath(task.directory), root = await realpath(task.settings.directory);
   if (!directory.startsWith(root + sep) || (await lstat(task.directory)).isSymbolicLink())
     throw new AppError('DIRECTORY', '任务目录归属需要重新确认');
-  for (const name of ['.work', `.work-${task.revision}`]) {
+  for (const name of new Set(['.work', task.workName ?? '.work', `.work-${task.revision}`])) {
     const path = join(directory, name);
     const entry = await lstat(path).catch(() => undefined);
     if (entry && (entry.isSymbolicLink() || !entry.isDirectory())) throw new AppError('DIRECTORY', '任务工作目录需要检查');

@@ -47,7 +47,8 @@ export class QueueModel {
   }
   snapshot(): Snapshot {
     const tasks = this.state.tasks;
-    const latest = [...tasks].sort((a, b) => b.updatedAt - a.updatedAt)[0];
+    const latest = tasks.reduce<TaskRecord | undefined>((current, task) =>
+      !current || task.updatedAt > current.updatedAt ? task : current, undefined);
     return { job: tasks.find(t => t.id === this.active?.id) ?? latest, inspecting: !!this.reading,
       tools: this.optionsTools, saveDirectory: this.state.preferences.directory, mock: this.options.mock,
       preferences: this.state.preferences, access: this.options.accessSnapshot?.(),

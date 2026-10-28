@@ -1,4 +1,4 @@
-import { stat } from 'node:fs/promises';
+import { lstat } from 'node:fs/promises';
 import { z } from 'zod';
 import type { Runner } from './process';
 import { AppError } from './validation';
@@ -9,7 +9,9 @@ const probeSchema = z.object({ format: z.object({ duration: z.string() }), strea
 })) });
 export async function verifyMedia(path: string, duration: number | undefined, video: boolean,
   ffprobe: string, runner: Runner, signal: AbortSignal, allowSilent = false): Promise<{ width?: number; height?: number; audio: boolean }> {
-  if ((await stat(path)).size < 100) throw new AppError('INVALID_MEDIA', '输出文件为空，未标记为完成。请重试。');
+  const entry = await lstat(path);
+  if (!entry.isFile()) throw new AppError('FILE', '媒体文件位置需要检查，请打开任务文件夹确认');
+  if (entry.size < 100) throw new AppError('INVALID_MEDIA', '输出文件为空，未标记为完成。请重试。');
   const text = await runner(ffprobe, ['-v', 'error', ...LOCAL_INPUT_ARGS, '-count_packets', '-show_entries',
     'format=duration:stream=codec_type,codec_name,duration,nb_read_packets,height,width', '-of', 'json', path],
   { signal, timeout: 3_600_000, maxOutput: 100_000, failOnStderr: true });

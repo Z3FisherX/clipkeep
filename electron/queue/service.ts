@@ -43,7 +43,7 @@ export class QueueService {
       try { await perform(this.model, this.scheduler, input); }
       catch (error) {
         if (error instanceof AppError && error.code === 'STORAGE' && input.action !== 'cancel') {
-          this.model.state.tasks = before.map(task => ['running', 'cancelling'].includes(task.status)
+          this.model.state.tasks = before.map(task => task.id === this.model.active?.id || ['running', 'cancelling'].includes(task.status)
             ? this.model.state.tasks.find(current => current.id === task.id) ?? task : task);
           this.model.runtime = runtime; this.model.emit();
         }
@@ -91,7 +91,7 @@ export class QueueService {
     this.model.stopping = true; this.model.paused = true;
     await Promise.all([this.cancelInspection(), this.cancel()]);
     await this.scheduler.settle();
-    if (!this.model.storageUnavailable) await this.model.save();
+    await this.model.serial(async () => { if (!this.model.storageUnavailable) await this.model.save(); });
     this.model.emit();
   }
 }

@@ -70,8 +70,10 @@ async function ensureSource(job: Job, tools: Tools, runner: Runner, signal: Abor
 }
 export async function executeJob(job: Job, tools: Tools, runner: Runner, signal: AbortSignal,
   useBrowser: boolean, update: Update, requestUrl = job.info.url): Promise<void> {
+  if (job.workName && !/^\.work(?:-\d+)?$/.test(job.workName)) throw new AppError('DIRECTORY', '任务工作目录需要检查');
   const work = join(job.directory, job.workName ?? '.work');
   await mkdir(work, { recursive: true, mode: 0o700 });
+  if (!(await lstat(work)).isDirectory()) throw new AppError('DIRECTORY', '任务工作目录需要检查');
   const suffix = job.mode === 'audio' ? 'm4a' : 'mp4';
   const source = join(work, `source.${suffix}`);
   const stem = `${safeStem(job.info.title)} [${job.info.id}]`;

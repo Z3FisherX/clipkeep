@@ -16,6 +16,7 @@
 | `npm run build` | React 与 Electron | 两端构建成功 |
 | `npm run test:ui` | 单条下载、格式、取消、重试及工具状态 | Electron 流程完成、媒体校验通过 |
 | `npm run test:queue-ui` | 批量、队列、历史、偏好与重启恢复 | 状态、文件与持久化断言通过 |
+| `npm run test:batch-ui` | 批量重读与来源恢复 | 重读失败清除旧准备结果，重新读取成功后恢复入队 |
 | `npm run test:layout` | 窗口、长标题、长队列及模态 | 控件可达、页面尺寸与窗口匹配 |
 | `npm run test:access-ui` | 登录会话、授权、平台隔离和来源恢复 | 隔离测试会话断言通过 |
 | `npm run test:media` | 真实 yt-dlp、FFmpeg、ffprobe 与本地 HTTP | 真实产物与下载调用断言通过 |
@@ -25,7 +26,7 @@
 
 ## GitHub Actions
 
-`CI` 在 main 推送、Pull Request 和手动触发时运行，使用 `macos-15` Apple Silicon runner、Node 24 和本机媒体工具。检查后执行基础下载、队列与布局验收。工作流以只读仓库权限运行，Actions 固定到提交 SHA，Dependabot 跟进依赖更新。
+`CI` 在 main 推送、Pull Request 和手动触发时运行，使用 `macos-15` Apple Silicon runner、Node 24 和本机媒体工具。检查后执行基础下载、队列、批量重读与布局验收。工作流以只读仓库权限运行，Actions 固定到提交 SHA，Dependabot 跟进依赖更新。
 
 `Prepare release` 手动触发，执行相同检查和界面验收，再打包、核验安装包、生成 ZIP 与 SHA256 工件。工作流具体步骤见 `.github/workflows/`。
 

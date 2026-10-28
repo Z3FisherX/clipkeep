@@ -18,6 +18,7 @@ export async function perform(model: QueueModel, scheduler: Scheduler, input: Ta
   }
   const task = model.task(input.id);
   if (input.action === 'cancel') {
+    if (isFinished(task)) return;
     if (['running', 'cancelling'].includes(task.status)) await scheduler.cancel(task.id);
     else { task.status = 'cancelled'; task.phase = '已取消'; task.updatedAt = Date.now(); }
     await model.save(); model.emit(); return;

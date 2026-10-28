@@ -24,7 +24,7 @@ jobs:
       - run: brew list ffmpeg node@24 || brew install ffmpeg node@24
       - run: npm run tools:prepare
       - run: npm run check
-      - run: npm run test:ui && npm run test:queue-ui && npm run test:layout
+      - run: npm run test:ui && npm run test:queue-ui && npm run test:batch-ui && npm run test:layout
       - run: node scripts/package.mjs
       - name: Verify packaged app
         run: node scripts/packaged-smoke.mjs 'release/拾片-darwin-arm64/拾片.app/Contents/MacOS/拾片' evidence/packaged-release
