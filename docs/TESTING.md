@@ -4,6 +4,8 @@
 
 使用 Node.js 24 与 `npm ci` 安装锁定依赖。完整验收环境为 Apple Silicon macOS、FFmpeg、ffprobe 和固定版本 yt-dlp。执行 `npm run tools:prepare` 准备工具。
 
+类型检查与构建采用 TypeScript 7.0.2，通过 `@typescript/native` 别名安装；`typescript` 指向官方 `@typescript/typescript6` 兼容包，为 ESLint 提供 TypeScript 6 编译器 API。该组合遵循 [TypeScript 官方并行安装说明](https://devblogs.microsoft.com/typescript/announcing-typescript-7-0/#running-side-by-side-with-typescript-60)，`tsc` 使用版本 7，`tsc6` 使用兼容版本。`@types/node` 更新至 26.6.6，运行验收使用 Node.js 24 与 Electron 45 内置的 Node.js 24。
+
 ## 检查入口与通过条件
 
 | 入口 | 覆盖范围 | 通过条件 |
