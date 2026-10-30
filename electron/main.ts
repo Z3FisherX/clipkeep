@@ -40,7 +40,7 @@ function registerIpc() {
   handle('retry', input => service.retry(authSchema.parse(input)));
   handle('access', input => accessManager.open(videoUrlSchema.parse(input).url));
   handle('access-clear', async input => {
-    const { platform } = z.object({ platform: z.enum(['douyin', 'vimeo', 'twitter']) }).strict().parse(input);
+    const { platform } = z.object({ platform: z.enum(['douyin', 'vimeo', 'twitter', 'wechat']) }).strict().parse(input);
     await service.revoke(platform); await accessManager.clear(platform);
   });
   handle('cancel', () => service.cancel());

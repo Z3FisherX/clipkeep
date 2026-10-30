@@ -25,7 +25,7 @@ export function mockSourceMetadata(url: string, videoIndex = 1) {
     title: `${platformName(source.platform)} · 本地测试影片`, duration: 3, uploader: '拾片测试工作台',
     original_url: source.url, display_id: source.id, clipkeep_count: ['weibo', 'generic'].includes(source.platform) ? 3 : undefined,
     extractor_key: { bilibili: 'BiliBili', douyin: 'Douyin', xiaohongshu: 'XiaoHongShu', twitter: 'Twitter', tiktok: 'TikTok',
-      vimeo: 'Vimeo', weibo: 'Weibo', generic: 'Generic' }[source.platform] };
+      vimeo: 'Vimeo', weibo: 'Weibo', wechat: 'Wechat', generic: 'Generic' }[source.platform] };
   if (source.platform === 'bilibili') return { ...base, formats: mockMetadata.formats };
   return { ...base, formats: [{ format_id: 'muxed', ext: 'mp4', vcodec: 'h264', acodec: source.url.includes('/silent.') ? 'none' : 'aac', width: 360, height: 640 }] };
 }
@@ -34,7 +34,7 @@ export const mockRedirectProbe: RedirectProbe = async (url, signal) => {
   return { bilibili: 'https://www.bilibili.com/video/BV1xx411c7mD?p=2', douyin: 'https://www.douyin.com/video/6961737553342991651',
     xiaohongshu: 'https://www.xiaohongshu.com/explore/674051740000000007027a15?xsec_token=mock-share-token', youtube: undefined,
     tiktok: 'https://www.tiktok.com/@sample/video/6748451240264420610', weibo: 'https://m.weibo.cn/status/4189191225395228',
-    twitter: undefined, vimeo: undefined, generic: undefined }[parseSource(url).platform];
+    twitter: undefined, vimeo: undefined, wechat: undefined, generic: undefined }[parseSource(url).platform];
 };
 export function mockRunner(root: string): Runner {
   return async (executable, args, options = {}) => {

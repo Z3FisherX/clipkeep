@@ -2,19 +2,20 @@
 
 面向 Apple Silicon Mac 的视频与音频下载工具。粘贴链接，选择格式和画质，在本机保存 MP4 视频、M4A 音频，或各保存一份。
 
-当前版本：**0.6.1**，预发布试用。主界面采用固定双栏：左侧准备下载，右侧管理队列与历史。
+当前源码版本：**0.7.0**，增加微信视频号分享链接集成。主界面采用固定双栏：左侧准备下载，右侧管理队列与历史。
 
-[下载 Apple Silicon 版](https://github.com/Z3FisherX/clipkeep/releases/download/v0.6.1/Clipkeep-0.6.1-mac-arm64.zip) · [SHA256 校验文件](https://github.com/Z3FisherX/clipkeep/releases/download/v0.6.1/SHA256SUMS.txt) · [版本发布页](https://github.com/Z3FisherX/clipkeep/releases/tag/v0.6.1)
+[下载已发布的 0.6.1 Apple Silicon 版](https://github.com/Z3FisherX/clipkeep/releases/download/v0.6.1/Clipkeep-0.6.1-mac-arm64.zip) · [SHA256 校验文件](https://github.com/Z3FisherX/clipkeep/releases/download/v0.6.1/SHA256SUMS.txt) · [版本发布页](https://github.com/Z3FisherX/clipkeep/releases/tag/v0.6.1)
 
 [使用指南](docs/USER-GUIDE.md) · [更新记录](CHANGELOG.md) · [开发与测试](docs/TESTING.md) · [发布流程](docs/RELEASING.md)
 
 ## 功能
 
-- 读取 YouTube、B站、抖音、小红书、X、TikTok、Vimeo、微博，以及公开网页和 MP4/HLS/DASH 来源。
+- 读取 YouTube、B站、抖音、小红书、X、TikTok、Vimeo、微博、微信视频号，以及公开网页和 MP4/HLS/DASH 来源。
 - 视频、音频与双输出；画质选择、独立任务目录和成品校验。
 - 批量添加、顺序队列、排序、取消、重试和重启恢复。
 - 历史搜索、状态筛选、打开成果与重新下载。
 - 抖音、Vimeo、X 的 App 内网页登录及来源选择。
+- 微信视频号使用 App 内元宝登录解析分享链接，支持单条及批量队列；登录由用户完成。
 
 实际平台访问受内容权限、地区、登录验证和上游接口变化影响。请保存自己拥有下载权限的内容。
 

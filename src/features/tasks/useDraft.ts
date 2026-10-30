@@ -3,6 +3,7 @@ import type { OutputMode, Snapshot, VideoInfo } from '../../../shared/contracts'
 import type { TaskRecord } from '../../../shared/tasks';
 import { preferredQuality } from '../../../shared/tasks';
 import type { useAsyncAction } from '../../useAsyncAction';
+import { platformFromInput } from '../../../shared/platforms';
 export function useDraftState() {
   const [url, setUrl] = useState('');
   const [info, setInfo] = useState<VideoInfo>();
@@ -23,6 +24,7 @@ export type Actions = ReturnType<typeof useAsyncAction>;
 export function useDraftActions(state: Snapshot, d: Draft, a: Actions) {
   const read = (browser: boolean, videoIndex?: number, session = d.useSession, candidate = d.candidateId) => {
     if (a.pending || state.inspecting) return;
+    if (platformFromInput(d.url) === 'wechat') { browser = false; session = true; candidate = undefined; }
     d.setInfo(undefined); d.setOriginalConfirmed(false); d.setBrowser(browser); d.setSession(session); d.setCandidate(candidate);
     void a.act(() => window.desktop.inspect({ url: d.url, useBrowser: browser, videoIndex, useSession: session, candidateId: candidate }), value => {
       d.setInfo(value); d.setMode(d.recovering?.mode ?? state.preferences?.mode ?? 'video');

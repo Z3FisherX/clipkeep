@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 import type { OutputMode, VideoInfo } from '../../../shared/contracts';
 import { preferredQuality } from '../../../shared/tasks';
 import { extractLinks } from '../../../shared/batch';
+import { platformFromInput } from '../../../shared/platforms';
 import type { Controller } from '../../useDownloader';
 import { Icon } from '../../Icons';
 interface Item { id: string; url: string; info?: VideoInfo; mode: OutputMode; qualityId?: string; selected?: number; original?: boolean; error?: string }
@@ -26,7 +27,7 @@ export function BatchPanel({ c, onPrepare }: { c: Controller; onPrepare?: () => 
   };
   const read = async (item: Item, index?: number) => {
     patch(item.id, { info: undefined, qualityId: undefined, selected: index, original: false, error: undefined });
-    const result = await window.desktop.inspect({ url: item.url, useBrowser: false, videoIndex: index });
+    const result = await window.desktop.inspect({ url: item.url, useBrowser: false, videoIndex: index, useSession: platformFromInput(item.url) === 'wechat' });
     if (result.ok) patch(item.id, { info: result.value, qualityId: preferredQuality(result.value, c.state.preferences?.quality ?? '1080')?.id,
       selected: index, error: undefined, original: false });
     else patch(item.id, { error: result.error.message });
@@ -40,7 +41,8 @@ export function BatchPanel({ c, onPrepare }: { c: Controller; onPrepare?: () => 
   const add = (values: Item[], duplicate = false) => run(async () => {
     for (const item of values.filter(ready)) {
       const result = await window.desktop.enqueue({ inspectionId: item.info!.inspectionId!, requestId: item.id,
-        mode: item.mode, qualityId: item.qualityId, originalConfirmed: item.original, allowDuplicate: duplicate, useBrowser: false });
+        mode: item.mode, qualityId: item.qualityId, originalConfirmed: item.original, allowDuplicate: duplicate,
+        useBrowser: false, useSession: platformFromInput(item.url) === 'wechat' });
       if (result.ok) setItems(current => current.filter(value => value.id !== item.id));
       else patch(item.id, { error: result.error.message });
     }

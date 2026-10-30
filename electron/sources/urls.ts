@@ -4,6 +4,7 @@ import { AppError } from '../errors';
 import { createHash } from 'node:crypto';
 import { isPublicHost } from '../network/public-address';
 import { tiktok, twitter, vimeo, weibo } from './social-urls';
+import { wechatSource } from '../wechat/urls';
 export interface VideoSource {
   platform: PlatformId; url: string; publicUrl: string; id: string; part?: number; short: boolean;
 }
@@ -71,7 +72,7 @@ export function parseSource(input: string): VideoSource {
     url.hash = '';
     return { platform, id: '', url: url.href, publicUrl: url.origin + url.pathname, short: true };
   }
-  return { youtube, bilibili, douyin, xiaohongshu, twitter, tiktok, vimeo, weibo }[platform](url);
+  return { youtube, bilibili, douyin, xiaohongshu, twitter, tiktok, vimeo, weibo, wechat: wechatSource }[platform](url);
 }
 export function youtubeUrl(value: string): string {
   const source = parseSource(value);

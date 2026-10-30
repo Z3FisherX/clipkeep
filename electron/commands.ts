@@ -6,7 +6,7 @@ import type { PlatformId } from '../shared/platforms';
 import { LOCAL_POSTPROCESSOR_ARGS } from './downloads/local-input';
 export function sourceArgs(platform: PlatformId, index?: number): string[] {
   const selected = ['generic', 'weibo', 'twitter'].includes(platform) ? ['--playlist-items', String(index ?? 1)] : [];
-  return platform === 'generic' ? [...selected, '--downloader', 'native', '--fixup', 'never',
+  return ['generic', 'wechat'].includes(platform) ? [...selected, '--downloader', 'native', '--fixup', 'never',
     '--postprocessor-args', LOCAL_POSTPROCESSOR_ARGS] : selected;
 }
 export function baseArgs(tools: Tools, useBrowser: boolean): string[] {

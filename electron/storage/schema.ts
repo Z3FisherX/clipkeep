@@ -3,7 +3,7 @@ import type { Preferences, TaskRecord } from '../../shared/tasks';
 const mode = z.enum(['video', 'audio', 'both']);
 export const preferencesSchema = z.object({ mode, quality: z.enum(['best', '1080', '720']), directory: z.string().min(1) });
 const quality = z.object({ id: z.string(), height: z.number(), width: z.number().optional(), label: z.string(), hasAudio: z.boolean(), needsConversion: z.boolean().optional() });
-const info = z.object({ id: z.string(), platform: z.enum(['youtube', 'bilibili', 'douyin', 'xiaohongshu', 'twitter', 'tiktok', 'vimeo', 'weibo', 'generic']),
+const info = z.object({ id: z.string(), platform: z.enum(['youtube', 'bilibili', 'douyin', 'xiaohongshu', 'twitter', 'tiktok', 'vimeo', 'weibo', 'wechat', 'generic']),
   url: z.string(), title: z.string(), uploader: z.string(), duration: z.number().optional(), qualities: z.array(quality),
   audioId: z.string().optional(), audioFromVideo: z.boolean().optional(), videoIndex: z.number().optional(), videoCount: z.number().optional(),
   hasAudio: z.boolean().optional(), captured: z.boolean().optional() });

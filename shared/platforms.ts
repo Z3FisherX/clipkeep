@@ -1,4 +1,4 @@
-export type PlatformId = 'youtube' | 'bilibili' | 'douyin' | 'xiaohongshu' | 'twitter' | 'tiktok' | 'vimeo' | 'weibo' | 'generic';
+export type PlatformId = 'youtube' | 'bilibili' | 'douyin' | 'xiaohongshu' | 'twitter' | 'tiktok' | 'vimeo' | 'weibo' | 'wechat' | 'generic';
 export interface PlatformDefinition { id: PlatformId; name: string; hosts: readonly string[] }
 export const PLATFORMS: readonly PlatformDefinition[] = [
   { id: 'youtube', name: 'YouTube', hosts: ['youtube.com', 'www.youtube.com', 'm.youtube.com', 'music.youtube.com', 'youtu.be'] },
@@ -9,6 +9,7 @@ export const PLATFORMS: readonly PlatformDefinition[] = [
   { id: 'tiktok', name: 'TikTok', hosts: ['tiktok.com', 'www.tiktok.com', 'vm.tiktok.com', 'vt.tiktok.com'] },
   { id: 'vimeo', name: 'Vimeo', hosts: ['vimeo.com', 'www.vimeo.com', 'player.vimeo.com'] },
   { id: 'weibo', name: '微博', hosts: ['weibo.com', 'www.weibo.com', 'm.weibo.cn', 'video.weibo.com', 't.cn'] },
+  { id: 'wechat', name: '微信视频号', hosts: ['weixin.qq.com', 'channels.weixin.qq.com'] },
   { id: 'generic', name: '网页视频', hosts: [] },
 ];
 export function platformForHost(host: string): PlatformDefinition | undefined {
@@ -21,4 +22,4 @@ export function platformFromInput(input: string): PlatformId | undefined {
   const match = input.match(/https?:\/\/([^/\s?#]+)/i);
   return match ? platformForHost(match[1])?.id ?? 'generic' : undefined;
 }
-export function supportsBrowserAuth(platform: PlatformId | undefined): boolean { return platform !== 'generic'; }
+export function supportsBrowserAuth(platform: PlatformId | undefined): boolean { return platform !== 'generic' && platform !== 'wechat'; }

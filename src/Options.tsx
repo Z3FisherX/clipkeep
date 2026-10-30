@@ -47,6 +47,7 @@ export function Destination({ c }: { c: Controller }) {
     <button className="secondary" onClick={() => void c.choose()} disabled={c.busy}>更换目录</button></div>;
 }
 export function Privacy({ c }: { c: Controller }) {
+  if (platformFromInput(c.url) === 'wechat') return <p className="consent-copy">微信视频号通过「登录与访问」中的元宝会话解析分享链接。</p>;
   return <div className={`auth-choice ${c.useBrowser ? 'enabled' : ''}`}>
     <label className="login-toggle"><input type="checkbox" checked={c.useBrowser}
       onChange={e => c.setBrowser(e.target.checked)} disabled={c.busy || c.state.mock || !supportsBrowserAuth(platformFromInput(c.url))} /><span>使用本地 Chrome 登录态</span></label>

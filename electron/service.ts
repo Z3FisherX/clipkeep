@@ -163,6 +163,8 @@ export class DownloadService {
     await Promise.allSettled([this.pending, this.inspectPending]);
   }
   private assertAuthentication(platform: VideoInfo['platform'], useBrowser: boolean, useSession = false) {
+    if (platform === 'wechat' && (useBrowser || !useSession))
+      throw new AppError('SESSION_REQUIRED', '请打开元宝登录，授权后读取视频号分享链接。');
     if (useBrowser && useSession) throw new AppError('AUTH_SCOPE', '请选择一种视频访问方式。');
     if (platform === 'generic' && useBrowser) throw new AppError('AUTH_SCOPE', '通用网页使用公开访问模式。登录授权用于已接入的视频平台。');
   }

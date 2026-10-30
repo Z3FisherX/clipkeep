@@ -40,7 +40,7 @@ export function Dependencies({ c }: { c: Controller }) {
     <div className="dependency-list"><div className="section-line"><h2>依赖状态</h2><button className="secondary" onClick={() => void c.check()} disabled={c.busy}>重新检测</button></div>
       {c.state.tools.map(tool => <div className="dependency-item" key={tool.name}><strong>{tool.name}</strong>
         <span>{tool.ready ? tool.version : '缺失或无法启动'}</span><code>{tool.path ?? '未找到可执行文件'}</code></div>)}
-      <div className="help-copy"><p>支持 YouTube、B站、抖音、小红书、X、TikTok、Vimeo、微博，以及公共网页中的视频和 MP4/HLS/DASH 媒体地址。</p>
+      <div className="help-copy"><p>支持 YouTube、B站、抖音、小红书、X、TikTok、Vimeo、微博、微信视频号，以及公共网页中的视频和 MP4/HLS/DASH 媒体地址。</p>
         <p>B站按链接中的分P保存；X 按视频链接序号保存；微博与网页存在多个视频时，可以选择帖子视频条目。</p>
         <p>成品为 H.264 + AAC 视频或 AAC 音频；兼容音轨直接复制，其他编码在本机转换。视频与音频各一份时复用下载成果。</p>
         <p>每个任务使用独立文件夹。任务和偏好自动保存，再次打开后可继续队列；需要登录或完整链接时提供重新准备来源的入口。</p>

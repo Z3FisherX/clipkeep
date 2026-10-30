@@ -21,6 +21,8 @@
 | `npm run test:batch-ui` | 批量重读与来源恢复 | 重读失败清除旧准备结果，重新读取成功后恢复入队 |
 | `npm run test:layout` | 窗口、长标题、长队列及模态 | 控件可达、页面尺寸与窗口匹配 |
 | `npm run test:access-ui` | 登录会话、授权、平台隔离和来源恢复 | 隔离测试会话断言通过 |
+| `npm run test:wechat-ui` | 元宝手动授权、单条、批量、过期重登及清除 | Electron 内存会话隔离、媒体输出和状态通过 |
+| `npm run test:wechat-media` | 视频号适配器与真实下载/媒体工具 | MP4/M4A/双输出及取消后的 Range 续传通过 |
 | `npm run test:media` | 真实 yt-dlp、FFmpeg、ffprobe 与本地 HTTP | 真实产物与下载调用断言通过 |
 | `npm run test:platform-media` / `test:expansion-media` | 平台格式、静音、流媒体与恢复 | 对应媒体和网络边界断言通过 |
 

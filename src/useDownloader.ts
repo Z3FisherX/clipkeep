@@ -4,6 +4,7 @@ import type { QualityPolicy } from '../shared/tasks';
 import { preferredQuality } from '../shared/tasks';
 import { useAsyncAction } from './useAsyncAction';
 import { platformFromInput } from '../shared/platforms';
+import { isAccessPlatform } from '../shared/access';
 import { useDraftState, useDraftActions } from './features/tasks/useDraft';
 import { useSubmission } from './features/tasks/useSubmission';
 const initial: Snapshot = { inspecting: false, tools: [], saveDirectory: '', mock: false };
@@ -27,7 +28,7 @@ export function useDownloader() {
     openAccess: () => a.act(() => window.desktop.openAccess({ url: d.url }), () => d.setAccessUrl(d.url), false),
     clearAccess: () => {
       d.setSession(false); d.setCandidate(undefined); d.setInfo(undefined); const platform = platformFromInput(d.url);
-      if (platform === 'douyin' || platform === 'vimeo' || platform === 'twitter') void a.act(() => window.desktop.clearAccess({ platform }));
+      if (isAccessPlatform(platform)) void a.act(() => window.desktop.clearAccess({ platform }));
     },
     cancel: () => a.act(() => window.desktop.cancel()),
     cancelRead: async () => { const result = await window.desktop.cancelInspection(); if (!result.ok) a.setError(result.error); },
