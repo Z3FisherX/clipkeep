@@ -23,7 +23,7 @@ try {
   await add.waitFor(); assert.equal(await add.isEnabled(), true);
   await writeFile(join(root, 'bot-check'), 'fixture');
   await page.getByRole('button', { name: '重读', exact: true }).click();
-  await page.getByRole('button', { name: '单独处理来源', exact: true }).waitFor();
+  await page.getByRole('button', { name: '使用 Chrome 登录态重读', exact: true }).waitFor();
   assert.equal(await page.getByRole('button', { name: '加入 0 个任务', exact: true }).isDisabled(), true);
   assert.equal(await page.getByRole('button', { name: '仍然添加', exact: true }).count(), 0);
   await unlink(join(root, 'bot-check'));

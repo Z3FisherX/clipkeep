@@ -9,6 +9,7 @@ export { classifyFailure } from './failures';
 export interface RunOptions {
   signal?: AbortSignal; timeout?: number; maxOutput?: number; onLine?: (line: string) => void; failOnStderr?: boolean;
   platform?: PlatformId;
+  captureOutput?: boolean;
   network?: 'public'; stdin?: string; pipeInput?: string; mediaInput?: string;
 }
 export type Runner = (executable: string, args: string[], options?: RunOptions) => Promise<string>;
@@ -30,7 +31,7 @@ export const run: Runner = async (executable, args, options = {}) => {
         TMPDIR: process.env.TMPDIR, LANG: 'en_US.UTF-8' } });
     attachInput(child.stdio[3], options.pipeInput); attachInput(child.stdio[4], options.mediaInput);
     if (child.stdin) { child.stdin.on('error', () => {}); child.stdin.end(options.stdin); }
-    const stdout = new ProcessOutput(options.maxOutput ?? 8_000_000, options.onLine);
+    const stdout = new ProcessOutput(options.maxOutput ?? 8_000_000, options.onLine, options.captureOutput ?? true);
     let stderr = '';
     let stopped: AppError | undefined;
     let killTimer: ReturnType<typeof setTimeout> | undefined;

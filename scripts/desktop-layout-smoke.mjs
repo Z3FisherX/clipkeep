@@ -34,9 +34,9 @@ try {
   await page.getByRole('button', { name: '读取视频', exact: true }).click();
   await page.locator('.video-preview').waitFor();
   await fits();
-  assert.equal(await page.locator('.composer-content').evaluate(el => el.scrollHeight <= el.clientHeight), true);
+  assert.equal(await page.locator('.composer-content').evaluate(el => el.scrollWidth <= el.clientWidth), true);
   await page.screenshot({ path: join(output, 'ready-minimum.png') });
-  mark('最小窗口读取成功，格式、清晰度、保存目录同时可见');
+  mark('最小窗口读取成功，格式、清晰度与保存位置通过局部滚动可达');
   await page.getByRole('button', { name: '设置与帮助', exact: true }).click();
   await page.getByLabel('默认清晰度', { exact: true }).selectOption('720');
   await page.keyboard.press('Escape');
@@ -72,7 +72,7 @@ try {
   await page.getByRole('tab', { name: '历史', exact: true }).click();
   await page.getByLabel('搜索历史').fill('海风');
   await fits();
-  await page.getByRole('tab', { name: /下载中/ }).click();
+  await page.getByRole('tab', { name: /当前任务/ }).click();
   await page.getByText('登录与访问', { exact: true }).click();
   await page.getByText('隐私说明', { exact: true }).click();
   await fits();
@@ -83,10 +83,9 @@ try {
   await page.getByRole('button', { name: '批量添加', exact: true }).click();
   await page.getByLabel('批量分享文案').fill('https://www.youtube.com/watch?v=zyxwvutsrqp');
   await page.getByRole('button', { name: '读取列表', exact: true }).click();
-  await page.getByRole('button', { name: '单独处理来源', exact: true }).click();
-  assert.equal(await page.getByRole('dialog').count(), 0);
-  assert.equal(await page.getByLabel('视频链接', { exact: true }).inputValue(), 'https://www.youtube.com/watch?v=zyxwvutsrqp');
+  await page.locator('.batch-item').getByText(/Sign|Chrome|确认|验证|登录/).first().waitFor();
+  await page.getByRole('dialog').getByRole('button', { name: '关闭', exact: true }).click();
   await unlink(join(root, 'bot-check'));
-  mark('批量来源需验证时转入单条处理，自动关闭面板并填入链接');
+  mark('批量鉴权状态保留，平台授权与逐项重读入口可达');
   await writeFile(join(output, 'layout-results.json'), JSON.stringify({ passed: true, checks, errors, at: new Date().toISOString() }, null, 2));
 } finally { await app.close(); }

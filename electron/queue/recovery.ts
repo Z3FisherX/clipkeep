@@ -6,6 +6,7 @@ import { AppError } from '../errors';
 import type { DownloadService } from '../service';
 import type { QueueModel } from './model';
 import { sourceFingerprint } from './drafts';
+import { outputExtension } from '../../shared/files';
 
 function restoredQuality(task: TaskRecord, info: VideoInfo) {
   if (task.mode === 'audio') return task.qualityId;
@@ -19,7 +20,7 @@ function restoredQuality(task: TaskRecord, info: VideoInfo) {
 export async function restoreContext(model: QueueModel, task: TaskRecord, worker: DownloadService, cancelled: () => boolean) {
   if (cancelled()) throw new AppError('CANCELLED', '任务已取消');
   if (model.runtime.has(task.id)) return false;
-  const source = join(task.directory, task.workName ?? '.work', `source.${task.mode === 'audio' ? 'm4a' : 'mp4'}`);
+  const source = join(task.directory, task.workName ?? '.work', `source.${outputExtension(task)}`);
   if (task.directory && await access(source).then(() => true, () => false)) return true;
   if (task.recovery !== 'public')
     throw new AppError('SOURCE_EXPIRED', task.recovery === 'link' ? '请补充原链接以继续任务' : '请重新授权并读取这个任务的来源');

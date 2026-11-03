@@ -7,6 +7,8 @@ import { verifyMedia } from '../media';
 import type { Runner } from '../process';
 import type { Update } from './source';
 import { LOCAL_INPUT_ARGS } from './local-input';
+import { outputExtension } from '../../shared/files';
+import { conversionProgress } from './progress';
 const tracksSchema = z.object({ streams: z.array(z.object({ codec_type: z.string().optional(), codec_name: z.string().optional() })) });
 async function readTracks(raw: string, tools: Tools, runner: Runner, signal: AbortSignal) {
   try {
@@ -28,20 +30,21 @@ export async function normalizeMedia(raw: string, target: string, job: Job, tool
   const allowSilent = job.mode === 'video' && job.info.hasAudio !== true;
   if ((!audio && !allowSilent) || (needsVideo && !video)) throw new AppError('INVALID_MEDIA', '视频或音轨读取失败，请重新读取视频信息。');
   update({ info: { ...job.info, hasAudio: !!audio } });
-  const convertVideo = needsVideo && video?.codec_name !== 'h264';
-  const convertAudio = !!audio && audio.codec_name !== 'aac';
+  const convertVideo = job.encoding !== 'original' && needsVideo && video?.codec_name !== 'h264';
+  const convertAudio = job.encoding !== 'original' && !!audio && audio.codec_name !== 'aac';
   const converting = convertVideo || convertAudio;
   update({ phase: converting ? '转换兼容格式' : needsVideo ? '整理音视频' : '提取独立音频', percent: 86,
     detail: converting ? '本机转换为 H.264 / AAC，处理时间取决于视频长度与清晰度' : '复制已有音视频轨，整理保存格式' });
-  const temporary = join(dirname(target), `normalized-${job.attempt}.${needsVideo ? 'mp4' : 'm4a'}`);
+  const temporary = join(dirname(target), `normalized-${job.attempt}.${outputExtension(job)}`);
   const videoArgs = needsVideo ? ['-map', '0:v:0', '-c:v', convertVideo ? 'libx264' : 'copy',
     ...(convertVideo ? ['-preset', 'fast', '-crf', '20', '-pix_fmt', 'yuv420p', '-vf', 'pad=ceil(iw/2)*2:ceil(ih/2)*2'] : [])] : ['-vn'];
   const audioArgs = audio ? ['-map', '0:a:0', '-c:a', convertAudio ? 'aac' : 'copy', ...(convertAudio ? ['-b:a', '192k'] : [])] : ['-an'];
   await runner(tools.ffmpeg, ['-hide_banner', '-loglevel', 'error', '-nostdin', '-n', ...LOCAL_INPUT_ARGS, '-i', raw,
     ...videoArgs, ...audioArgs,
-    '-sn', '-dn', '-movflags', '+faststart', temporary], { signal });
+    '-sn', '-dn', ...(job.encoding === 'original' ? [] : ['-movflags', '+faststart']), '-progress', 'pipe:1', '-stats_period', '1', temporary],
+  { signal, onLine: conversionProgress(job, update) });
   update({ phase: '验证媒体', percent: 90, detail: '扫描完整文件的音视频轨与时长' });
-  const actual = await verifyMedia(temporary, job.info.duration, needsVideo, tools.ffprobe, runner, signal, allowSilent);
+  const actual = await verifyMedia(temporary, job.info.duration, needsVideo, tools.ffprobe, runner, signal, allowSilent, job.encoding, stagePercent => update({ stagePercent }));
   update({ actual });
   await rename(temporary, target);
 }

@@ -29,4 +29,6 @@ jobs:
       - run: npm run test:ui
       - run: npm run test:queue-ui
       - run: npm run test:batch-ui
+      - run: npm run test:wechat-media
+      - run: npm run test:wechat-ui
       - run: npm run test:layout

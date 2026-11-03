@@ -22,3 +22,10 @@ test('tool detection finds the versioned Homebrew Node install documented for ne
   assert.equal(result.find(tool => tool.name === 'node')?.path, nodePath);
   assert.deepEqual(calls, [nodePath]);
 });
+
+test('tool preparation continues to a compatible existing Node after finding an older executable', async () => {
+  const result = await detectTools('/fixture/yt-dlp', async binary => binary === '/opt/homebrew/bin/node' ? 'v18.0.0' : 'v24.21.0',
+    async paths => paths.find(path => ['/opt/homebrew/bin/node', '/usr/local/bin/node'].includes(path)));
+  assert.equal(result.find(tool => tool.name === 'node')?.path, '/usr/local/bin/node');
+  assert.equal(result.find(tool => tool.name === 'node')?.ready, true);
+});

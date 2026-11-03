@@ -1,20 +1,23 @@
 # 拾片 · Clipkeep
 
-面向 Apple Silicon Mac 的视频与音频下载工具。粘贴链接，选择格式和画质，在本机保存 MP4 视频、M4A 音频，或各保存一份。
+面向 Apple Silicon Mac 的视频与音频下载工具。粘贴链接，选择格式和画质，在本机保存视频、音频或各保存一份，支持兼容播放与原编码输出。
 
-当前版本：**0.6.1**，预发布试用。主界面采用固定双栏：左侧准备下载，右侧管理队列与历史。
+当前源码版本：**0.8.0**。主界面采用固定双栏：左侧准备下载，右侧保留本轮任务结果并管理队列与历史。
 
-[下载 Apple Silicon 版](https://github.com/Z3FisherX/clipkeep/releases/download/v0.6.1/Clipkeep-0.6.1-mac-arm64.zip) · [SHA256 校验文件](https://github.com/Z3FisherX/clipkeep/releases/download/v0.6.1/SHA256SUMS.txt) · [版本发布页](https://github.com/Z3FisherX/clipkeep/releases/tag/v0.6.1)
+[发行记录](https://github.com/Z3FisherX/clipkeep/releases) · [0.8.0 版本说明](docs/releases/0.8.0.md)
 
 [使用指南](docs/USER-GUIDE.md) · [更新记录](CHANGELOG.md) · [开发与测试](docs/TESTING.md) · [发布流程](docs/RELEASING.md)
 
 ## 功能
 
-- 读取 YouTube、B站、抖音、小红书、X、TikTok、Vimeo、微博，以及公开网页和 MP4/HLS/DASH 来源。
-- 视频、音频与双输出；画质选择、独立任务目录和成品校验。
-- 批量添加、顺序队列、排序、取消、重试和重启恢复。
-- 历史搜索、状态筛选、打开成果与重新下载。
+- 读取 YouTube、B站、抖音、小红书、X、TikTok、Vimeo、微博、微信视频号，以及公开网页和 MP4/HLS/DASH 来源。
+- 兼容播放使用 H.264/AAC 的 MP4/M4A，原编码使用 MKV/MKA；双输出复用下载，成品校验包含完整包扫描与 SHA256。
+- 当前区域保留成功、失败和取消结果；立即重试、重新排队、重复记录定位及重启恢复。
+- 批量计数、停止、跳过、逐项移除、部分加入队列，以及统一格式与画质。
+- 历史搜索、分类目录、日期命名、移动后关联；恢复文件保留期限、磁盘占用与清理选择。
+- 后台继续、Dock 进度、完成通知、两种界面密度和键盘操作。
 - 抖音、Vimeo、X 的 App 内网页登录及来源选择。
+- 微信视频号使用 App 内元宝登录解析分享链接，支持单条及批量队列；登录由用户完成。
 
 实际平台访问受内容权限、地区、登录验证和上游接口变化影响。请保存自己拥有下载权限的内容。
 
@@ -25,10 +28,10 @@
 | 设备 | Apple Silicon Mac（arm64） |
 | 系统 | 应用声明 macOS 13.0 起；实际测试范围见版本说明 |
 | 下载工具 | App 随附固定版本 yt-dlp |
-| 本机工具 | FFmpeg、ffprobe、Node.js 24 |
+| 本机工具 | FFmpeg/ffprobe 6+、Node.js 24–26；源码开发使用 Node.js 24 |
 | 签名 | 当前发行流程采用本地 ad-hoc 签名 |
 
-从上方入口下载 ZIP；解压后进入 `拾片-darwin-arm64` 文件夹，将 `拾片.app` 拖入“应用程序”。首次打开时按 macOS 的来源确认提示操作。
+从发行记录选择对应 ZIP，或通过下方源码构建生成安装包；解压后进入 `拾片-darwin-arm64` 文件夹，将 `拾片.app` 拖入“应用程序”。首次打开时按 macOS 的来源确认提示操作。
 
 使用 Homebrew 准备本机工具：
 
@@ -36,7 +39,7 @@
 brew install ffmpeg node@24
 ```
 
-打开 App，在底部 **设置与帮助** 检查工具状态。粘贴链接、点击 **读取视频**，选择输出格式和目录，再点击 **开始下载**。结束的任务可在 **历史** 中查看。
+打开 App，在底部 **设置与帮助** 查看工具用途、安装入口和校验结果；已有工具可通过文件选择器指定。粘贴链接、点击 **读取视频**，选择输出格式和目录，再点击 **开始下载**。结束的任务保留在 **当前任务**，也可在 **历史** 中检索。
 
 完整的批量、登录、文件恢复和重启操作见 [使用指南](docs/USER-GUIDE.md)。
 
@@ -61,6 +64,9 @@ npm run check
 npm run test:ui
 npm run test:queue-ui
 npm run test:layout
+npm run test:experience-ui
+npm run test:recovery-ui
+npm run test:acceptance-revisions-ui
 ```
 
 `check` 覆盖公开文件、依赖审计、TypeScript、ESLint、单元测试与构建；Electron 操作验收在 macOS 上使用隔离数据和本机媒体工具。测试生成的数据位于本地 `evidence/`。
@@ -79,7 +85,7 @@ App 输出到 `release/拾片-darwin-arm64/拾片.app`；ZIP 和 SHA256 清单�
 
 ## 本地数据与隐私
 
-任务、历史和偏好保存在应用用户数据目录；媒体写入用户选择的文件夹。Chrome 登录态由用户显式选择，App 网页会话由用户确认授权，按平台隔离。清除会话或退出 App 后结束会话授权。
+任务、历史和偏好保存在应用用户数据目录；媒体写入用户选择的文件夹。Chrome 登录态由用户显式选择，App 网页会话由用户确认授权，按平台隔离。清除会话或退出 App 后结束会话授权。清空历史会同步处理主记录、备份与对应恢复文件；成品保留。恢复文件默认保留 7 天，可在设置中选择保留期限及显式清理。
 
 公开网页请求经过本机网络校验；合成 DNS 环境使用 Cloudflare HTTPS DNS 核实公共 IP，查询内容含域名。技术边界见 [实现说明](docs/IMPLEMENTATION.md)。
 

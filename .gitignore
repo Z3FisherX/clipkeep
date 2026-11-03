@@ -27,6 +27,8 @@ node_modules/
 !/docs/TESTING.md
 !/docs/RELEASING.md
 !/docs/ROADMAP.md
+!/docs/WECHAT-INTEGRATION.md
+!/docs/USER-OPTIMIZATION-20261103.md
 !/docs/releases/
 /scripts/package-friends.mjs
 /assets/Clipkeep.icns

@@ -7,7 +7,7 @@ export interface IdentityMetadata {
   extractor_key?: string; playlist_id?: string; playlist_index?: number;
 }
 const EXTRACTORS = { youtube: ['Youtube'], bilibili: ['BiliBili'], douyin: ['Douyin'], xiaohongshu: ['XiaoHongShu'],
-  twitter: ['Twitter'], tiktok: ['TikTok'], vimeo: ['Vimeo'], weibo: ['Weibo', 'WeiboVideo'], generic: [] };
+  twitter: ['Twitter'], tiktok: ['TikTok'], vimeo: ['Vimeo'], weibo: ['Weibo', 'WeiboVideo'], wechat: ['Wechat'], generic: [] };
 function sameBilibili(data: IdentityMetadata, source: VideoSource): boolean {
   const suffix = source.part === 1 ? '(?:_p1)?' : `_p${source.part}`;
   if (source.id.startsWith('BV')) return new RegExp(`^${source.id}${suffix}$`).test(data.id);

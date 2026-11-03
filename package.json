@@ -1,7 +1,7 @@
 {
   "name": "clipkeep",
   "productName": "拾片",
-  "version": "0.6.1",
+  "version": "0.8.0",
   "description": "个人 Mac 视频与音频下载工具",
   "private": true,
   "type": "module",
@@ -25,12 +25,19 @@
     "test:queue-ui": "node scripts/queue-smoke.mjs",
     "test:batch-ui": "node scripts/batch-smoke.mjs",
     "test:access-ui": "node scripts/access-smoke.mjs",
+    "test:wechat-ui": "node scripts/wechat-smoke.mjs",
+    "test:wechat-media": "node --import tsx scripts/wechat-media.ts",
     "tools:prepare": "node scripts/release/prepare-tools.mjs",
     "check:public": "node scripts/release/check-public.mjs",
     "check": "npm run check:public && npm run audit:dependencies && npm run typecheck && npm run lint && npm test && npm run build",
     "release:archive": "node scripts/release/archive.mjs",
     "test:layout": "node scripts/desktop-layout-smoke.mjs",
-    "audit:dependencies": "npm audit --audit-level=high"
+    "audit:dependencies": "npm audit --audit-level=high",
+    "test:experience-ui": "node scripts/user-experience-smoke.mjs",
+    "test:recovery-ui": "node scripts/user-recovery-smoke.mjs",
+    "test:experience-media": "node --import tsx scripts/verify-user-media.ts",
+    "check:signing": "node scripts/release/verify-signing-options.mjs",
+    "test:acceptance-revisions-ui": "node scripts/acceptance-revisions-smoke.mjs"
   },
   "dependencies": {
     "react": "^19.3.1",

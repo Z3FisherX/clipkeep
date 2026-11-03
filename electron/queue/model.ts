@@ -5,6 +5,7 @@ import { TaskStore } from '../storage/store';
 import type { StoredState } from '../storage/schema';
 import { DownloadService, type ServiceOptions } from '../service';
 import { AppError } from '../errors';
+import { ToolCache } from '../tool-cache';
 export interface Prepared {
   worker: DownloadService; info: VideoInfo; identity: string; needsLink: boolean;
   access: AccessInput; createdAt: number;
@@ -25,8 +26,12 @@ export class QueueModel {
   pumping = false;
   message?: string;
   storageUnavailable = false;
+  visible = new Set<string>();
+  historyVersion = 0;
+  toolsCache: ToolCache;
   private commands: Promise<unknown> = Promise.resolve();
   constructor(readonly options: QueueOptions) {
+    this.toolsCache = new ToolCache(options.detect);
     this.store = new TaskStore(options.dataDirectory);
     this.state = { schemaVersion: 1, preferences: { mode: 'video', quality: '1080', directory: options.saveDirectory }, tasks: [] };
   }
@@ -52,12 +57,13 @@ export class QueueModel {
     return { job: tasks.find(t => t.id === this.active?.id) ?? latest, inspecting: !!this.reading,
       tools: this.optionsTools, saveDirectory: this.state.preferences.directory, mock: this.options.mock,
       preferences: this.state.preferences, access: this.options.accessSnapshot?.(),
-      queue: { tasks: tasks.filter(t => !isFinished(t) || t.id === this.active?.id), activeId: this.active?.id, paused: this.paused, message: this.message } };
+      queue: { tasks: tasks.filter(t => !isFinished(t) || this.visible.has(t.id) || t.id === this.active?.id), activeId: this.active?.id,
+        paused: this.paused, message: this.message, historyVersion: this.historyVersion } };
   }
   optionsTools: Snapshot['tools'] = [];
   emit() { this.options.changed(this.snapshot()); }
   async save() {
-    try { await this.store.save(this.state); }
+    try { await this.store.save(this.state); this.historyVersion++; }
     catch (error) { this.paused = true; this.message = '任务保存需要恢复，请检查磁盘空间与权限'; this.emit(); throw error; }
   }
   task(id?: string): TaskRecord {
@@ -66,7 +72,9 @@ export class QueueModel {
     return task;
   }
   worker(): DownloadService {
-    return new DownloadService({ ...this.options, saveDirectory: this.state.preferences.directory, changed: snapshot => {
+    return new DownloadService({ ...this.options, detect: () => this.toolsCache.get(), invalidateTools: () => this.toolsCache.invalidate(),
+      saveDirectory: this.state.preferences.directory, changed: snapshot => {
+      if (snapshot.tools.length) this.optionsTools = snapshot.tools;
       if (snapshot.job) {
         const target = this.state.tasks.find(t => t.id === snapshot.job?.id);
         if (target) Object.assign(target, snapshot.job, { updatedAt: Date.now() });

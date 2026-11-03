@@ -15,6 +15,7 @@ import type { AccessSessionState } from '../shared/access';
 export interface ServiceOptions {
   saveDirectory: string; mock: boolean; runner: Runner; detect: () => Promise<ToolInfo[]>;
   changed: (state: Snapshot) => void;
+  invalidateTools?: () => void;
   redirectProbe?: RedirectProbe; resolveAccess?: ResolveAccess; accessSnapshot?: () => AccessSessionState[];
 }
 export class DownloadService {
@@ -48,7 +49,7 @@ export class DownloadService {
   async runPrepared(job: Job, useBrowser: boolean, localOnly = false, shouldCancel: () => boolean = () => false) {
     if (this.locked || this.inspecting || this.controller) throw new AppError('BUSY', '请等待当前操作完成收尾');
     this.job = job; this.jobSource = this.source; this.jobRunner = this.sourceRunner;
-    const tools = requireTools(await this.checkTools());
+    const tools = await this.readyTools();
     if (shouldCancel()) throw new AppError('CANCELLED', '任务已取消');
     if (localOnly) this.jobRunner = async (binary, args, options) => {
       if (binary.endsWith('yt-dlp') && args.includes('--')) throw new AppError('SOURCE_EXPIRED', '请重新准备来源以继续下载');
@@ -61,6 +62,10 @@ export class DownloadService {
   get busy() { return this.locked || this.inspecting || ['running', 'cancelling'].includes(this.job?.status ?? ''); }
   private assertIdle() { if (this.busy) throw new AppError('BUSY', '已有操作正在进行，请等待完成或先取消。'); }
   async checkTools() { this.tools = await this.options.detect(); this.emit(); return this.tools; }
+  private async readyTools() {
+    try { return requireTools(await this.checkTools()); }
+    catch (error) { this.options.invalidateTools?.(); throw error; }
+  }
   async setDirectory(directory: string) {
     this.assertIdle();
     if (!(await stat(directory)).isDirectory()) throw new AppError('DIRECTORY', '请选择有效的保存目录。');
@@ -74,6 +79,10 @@ export class DownloadService {
     this.source = undefined; this.sourceRunner = undefined; this.sessionRead = false;
     this.inspectPending = this.readInfo(url, useBrowser, this.controller.signal, videoIndex, access);
     try { this.info = await this.inspectPending; return this.info; }
+    catch (error) {
+      if (['TOOL_MISSING', 'TOOL_FAILED'].includes(friendlyError(error).code)) this.options.invalidateTools?.();
+      throw error;
+    }
     finally { this.inspecting = false; this.controller = undefined; this.emit(); }
   }
   private async readInfo(url: string, useBrowser: boolean, signal: AbortSignal, videoIndex: number | undefined, access: Omit<AccessInput, 'useBrowser'>) {
@@ -146,12 +155,16 @@ export class DownloadService {
     const job = this.job!;
     this.controller = new AbortController();
     const signal = this.controller.signal;
-    const update = (patch: Partial<Job>) => { Object.assign(job, patch); this.emit(); };
+    const update = (patch: Partial<Job>) => {
+      if (patch.phase && patch.phase !== job.phase) Object.assign(job, { phaseStartedAt: Date.now(), stagePercent: undefined });
+      Object.assign(job, patch); this.emit();
+    };
     this.emit();
     this.pending = executeJob(job, tools, this.jobRunner ?? this.options.runner, signal, useBrowser, update, this.jobSource?.url)
       .then(() => update({ status: 'done', phase: '已保存到本机', percent: 100, detail: '文件时长、音视频轨及完整包扫描通过' }))
       .catch((error: unknown) => {
         const fault = friendlyError(error);
+        if (['TOOL_MISSING', 'TOOL_FAILED', 'FAILED'].includes(fault.code)) this.options.invalidateTools?.();
         update({ status: signal.aborted ? 'cancelled' : 'failed', phase: signal.aborted ? '已取消' : '未完成',
           error: fault, detail: '临时文件与已完成的成果均已保留' });
       }).finally(() => { this.controller = undefined; });
@@ -163,6 +176,8 @@ export class DownloadService {
     await Promise.allSettled([this.pending, this.inspectPending]);
   }
   private assertAuthentication(platform: VideoInfo['platform'], useBrowser: boolean, useSession = false) {
+    if (platform === 'wechat' && (useBrowser || !useSession))
+      throw new AppError('SESSION_REQUIRED', '请打开元宝登录，授权后读取视频号分享链接。');
     if (useBrowser && useSession) throw new AppError('AUTH_SCOPE', '请选择一种视频访问方式。');
     if (platform === 'generic' && useBrowser) throw new AppError('AUTH_SCOPE', '通用网页使用公开访问模式。登录授权用于已接入的视频平台。');
   }

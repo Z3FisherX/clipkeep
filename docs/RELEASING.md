@@ -10,6 +10,18 @@
 | 安装包、ZIP、SHA256 | 本地 release；GitHub Release 附件 | 签名、安装包验收、ZIP 与校验清单 |
 | GitHub 自动检查 | `.github/workflows` | 固定 Actions SHA、只读权限、显式触发 |
 
+## 提交与验收记录
+
+实现、验收修正和文档按阶段独立提交，采用 Conventional Commits。代码与对应回归测试一同提交，交付文档使用 `docs` 提交记录。
+
+| 提交 | 范围 | 验证记录 |
+| --- | --- | --- |
+| `6496b2e` · `feat(ux)` | 0.8.0 用户体验实现与初次交付 | 初次全量和集成证据 |
+| `9caa77d` · `fix(ux)` | R01–R06 验收修正及回归 | 152 项测试、静态检查、六组 Electron 场景及修正版打包 |
+| `docs(ux)` 文档提交 | README、更新记录、实现及发行说明 | 文档链接、差异检查与代码验证输入匹配 |
+
+验收证据引用精确的代码提交。文档提交继续引用相同源码、依赖和配置对应的有效验证；安装包记录构建代码提交，归档记录随包文档提交与 SHA256。本地交接保存于 `evidence/user-optimization-20261103/handoff.json`。
+
 ## 本地准备
 
 ```sh
@@ -44,10 +56,19 @@ npm run release:archive
 6. 在 GitHub Releases 创建预发布，附 ZIP、SHA256SUMS 和版本说明。
 7. 使用新 macOS 用户环境验收解压、首次打开、工具准备和第一条下载。
 
-当前流程采用本地 ad-hoc 签名。更广范围发行时，将 Developer ID 签名、公证与首次安装体验纳入独立发布改动。
+默认打包采用本地 ad-hoc 签名。Developer ID 模式由 `scripts/release/signing.mjs` 生成配置，校验明确指定的 Application 身份与用户已经配置的公证 profile，并启用 Hardened Runtime、时间戳与公证。
+
+```sh
+CLIPKEEP_RELEASE_MODE=developer-id CLIPKEEP_SIGN_IDENTITY='Developer ID Application: Your Name (TEAMID)' CLIPKEEP_NOTARY_PROFILE='your-existing-profile' npm run package
+node scripts/release/verify-signing.mjs 'release/拾片-darwin-arm64/拾片.app' evidence/signing.json
+```
+
+证书安装、账号与钥匙串授权由维护者本人完成。发行验收要求 `codesign --verify --deep --strict`、Developer ID 身份、公证装订票据和 Gatekeeper 评估全部通过。本机 ad-hoc 证据与 Developer ID 发行证据分别记录。打包在签名前校验固定上游 yt-dlp；Developer ID 模式对嵌入工具签名后的字节以最终发行归档 SHA256 为准。
+
+应用内更新从固定 GitHub 仓库读取发布信息，安装包下载后校验官方 SHA256、归档路径、签名和公证，再通过 Finder 提供安装。解析器独立保存在应用数据目录，通过暂存校验及原子替换升级，升级前实际选用的随包、自选或应用内版本均保留已校验副本作回退。
 
 ## 验证证据
 
 本地报告保存于 `evidence/`；GitHub 的运行状态与日志以仓库 Actions 实际执行结果为准。安装包验收覆盖真实工具检测、页面隔离、平台入口和授权重置；平台下载行为由受控来源及相应实测记录覆盖。
 
-官方参考：[GitHub Releases](https://docs.github.com/en/repositories/releasing-projects-on-github/about-releases)、[macOS runner](https://docs.github.com/en/actions/reference/runners/github-hosted-runners)、[yt-dlp 许可说明](https://github.com/yt-dlp/yt-dlp#license)。
+官方参考：[Electron 签名与公证](https://www.electronjs.org/docs/latest/tutorial/code-signing)、[Forge macOS 签名](https://www.electronforge.io/guides/code-signing/code-signing-macos)、[GitHub Releases](https://docs.github.com/en/repositories/releasing-projects-on-github/about-releases)、[macOS runner](https://docs.github.com/en/actions/reference/runners/github-hosted-runners)、[yt-dlp 许可说明](https://github.com/yt-dlp/yt-dlp#license)。

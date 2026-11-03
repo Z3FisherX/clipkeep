@@ -85,7 +85,7 @@ try {
   await page.getByLabel('搜索历史').fill('');
   await page.waitForFunction(() => window.document.querySelectorAll('.task-card').length === 4);
   mark('历史搜索、输出文件定位和多条记录展示');
-  await page.getByRole('tab', { name: /下载中/ }).click();
+  await page.getByRole('tab', { name: /当前任务/ }).click();
   await read('https://www.youtube.com/watch?v=ghijklmnopq');
   await page.getByRole('button', { name: '开始下载', exact: true }).click();
   await waitState(state => state.job?.phase === '下载媒体');

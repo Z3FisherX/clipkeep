@@ -10,7 +10,7 @@ export interface AccessBrowser {
 export interface AccessBrowserOptions {
   owner?: BrowserWindow; session: Session; source: VideoSource; proxy: PublicProxy;
   changed(): void; captured(url: string, headers: Record<string, string | string[]>): void;
-  testUrl?: string;
+  initialUrl?: string;
 }
 function allowedNavigation(value: string): boolean {
   try { const url = new URL(value); return ['http:', 'https:'].includes(url.protocol) && !url.username && !url.password && isPublicHost(url.hostname); }
@@ -52,7 +52,7 @@ export async function createAccessBrowser(options: AccessBrowserOptions): Promis
   });
   view.webContents.on('did-finish-load', options.changed);
   void window.loadURL('app://clipkeep/access.html');
-  void view.webContents.loadURL(options.testUrl ?? options.source.url).catch(() => options.changed());
+  void view.webContents.loadURL(options.initialUrl ?? options.source.url).catch(() => options.changed());
   return { window, page: view.webContents, dispose: () => { options.session.webRequest.onHeadersReceived(null);
     if (!view.webContents.isDestroyed()) view.webContents.close({ waitForBeforeUnload: false });
     if (!window.isDestroyed()) window.destroy(); },

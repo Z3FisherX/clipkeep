@@ -37,14 +37,18 @@ try {
     await page.getByText(platform, { exact: true }).waitFor();
   }
   await page.getByText('登录与访问', { exact: true }).click();
-  await page.getByRole('checkbox').check();
+  await page.locator('.source-access input[type=checkbox]').check();
   await page.getByLabel('视频链接').fill('https://media.example.com/video.mp4');
-  assert.equal(await page.getByRole('checkbox').isChecked(), false);
-  assert.equal(await page.getByRole('checkbox').isDisabled(), true);
+  assert.equal(await page.locator('.source-access input[type=checkbox]').isChecked(), false);
+  assert.equal(await page.locator('.source-access input[type=checkbox]').isDisabled(), true);
   const genericAuth = await page.evaluate(() => window.desktop.inspect({ url: 'https://media.example.com/video.mp4', useBrowser: true }));
   assert.equal(genericAuth.ok, false); assert.equal(genericAuth.error.code, 'AUTH_SCOPE');
+  await page.getByLabel('视频链接').fill('https://weixin.qq.com/sph/Abc123xyz');
+  await page.getByRole('button', { name: '打开元宝登录', exact: true }).waitFor();
+  const wechatAuth = await page.evaluate(() => window.desktop.inspect({ url: 'https://weixin.qq.com/sph/Abc123xyz', useBrowser: false, useSession: true }));
+  assert.equal(wechatAuth.ok, false); assert.equal(wechatAuth.error.code, 'SESSION_REQUIRED');
   await page.getByLabel('视频链接').fill('https://www.youtube.com/watch?v=abcdefghijk');
-  assert.equal(await page.getByRole('checkbox').isChecked(), false);
+  assert.equal(await page.locator('.source-access input[type=checkbox]').isChecked(), false);
   await page.getByLabel('视频链接').fill('');
   await page.getByRole('button', { name: '设置与帮助', exact: true }).click();
   await page.screenshot({ path: join(reportDirectory, 'packaged-app.png'), fullPage: true, animations: 'disabled' });
@@ -57,7 +61,7 @@ try {
   assert.deepEqual(errors, []);
   const result = { passed: true, date: new Date().toISOString(), executablePath, appInfo, tools: state.tools,
     errors, checks: ['Packaged app launches', 'Generated brand icon loads', 'Real dependency detection', 'Mock environment ignored',
-      'Invalid link guarded before network', 'Eight named platform entries', 'Generic access uses public mode', 'Browser consent resets on source change', 'Renderer isolated', 'No page errors'],
+      'Invalid link guarded before network', 'Nine named platform entries', 'Wechat requires explicit session authorization', 'Generic access uses public mode', 'Browser consent resets on source change', 'Renderer isolated', 'No page errors'],
     credentialUse: false, youtubeRequests: false };
   await writeFile(join(reportDirectory, 'packaged-results.json'), JSON.stringify(result, null, 2));
   console.log(JSON.stringify({ passed: true, version: appInfo.version, tools: state.tools.map(t => `${t.name} ${t.version}`), checks: result.checks }, null, 2));
