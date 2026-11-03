@@ -1,6 +1,11 @@
 import { contextBridge, ipcRenderer } from 'electron';
 import type { DesktopApi, Snapshot } from '../shared/contracts';
 const api: DesktopApi = {
+  storage: () => ipcRenderer.invoke('clip:storage'), cleanRecovery: input => ipcRenderer.invoke('clip:recovery-clean', input),
+  deleteOutputs: input => ipcRenderer.invoke('clip:outputs-delete', input), relinkTask: input => ipcRenderer.invoke('clip:task-relink', input),
+  openHelp: input => ipcRenderer.invoke('clip:help', input), selectTool: input => ipcRenderer.invoke('clip:tool-select', input),
+  copyInstallCommand: () => ipcRenderer.invoke('clip:tool-command'),
+  maintenance: input => ipcRenderer.invoke('clip:maintenance', input), exportDiagnostics: () => ipcRenderer.invoke('clip:diagnostics'),
   enqueue: input => ipcRenderer.invoke('clip:enqueue', input),
   taskAction: input => ipcRenderer.invoke('clip:task-action', input),
   preferences: input => ipcRenderer.invoke('clip:preferences', input),

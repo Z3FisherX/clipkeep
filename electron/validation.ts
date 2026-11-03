@@ -16,7 +16,7 @@ export function safeStem(title: string): string {
   return stem.replace(/^\.+|[. ]+$/g, '') || '视频';
 }
 export function friendlyError(error: unknown) {
-  if (error instanceof AppError) return { code: error.code, message: error.message };
+  if (error instanceof AppError) return { code: error.code, message: error.message, ...(error.taskId ? { taskId: error.taskId } : {}) };
   if (error instanceof z.ZodError) return { code: 'INPUT', message: '输入参数无效，请重新选择后重试。' };
   const code = typeof error === 'object' && error !== null && 'code' in error ? error.code : undefined;
   if (code === 'ENOSPC') return { code, message: '磁盘空间不足。请释放空间后重试，临时文件已保留。' };

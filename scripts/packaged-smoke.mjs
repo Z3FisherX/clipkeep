@@ -37,10 +37,10 @@ try {
     await page.getByText(platform, { exact: true }).waitFor();
   }
   await page.getByText('登录与访问', { exact: true }).click();
-  await page.getByRole('checkbox').check();
+  await page.locator('.source-access input[type=checkbox]').check();
   await page.getByLabel('视频链接').fill('https://media.example.com/video.mp4');
-  assert.equal(await page.getByRole('checkbox').isChecked(), false);
-  assert.equal(await page.getByRole('checkbox').isDisabled(), true);
+  assert.equal(await page.locator('.source-access input[type=checkbox]').isChecked(), false);
+  assert.equal(await page.locator('.source-access input[type=checkbox]').isDisabled(), true);
   const genericAuth = await page.evaluate(() => window.desktop.inspect({ url: 'https://media.example.com/video.mp4', useBrowser: true }));
   assert.equal(genericAuth.ok, false); assert.equal(genericAuth.error.code, 'AUTH_SCOPE');
   await page.getByLabel('视频链接').fill('https://weixin.qq.com/sph/Abc123xyz');
@@ -48,7 +48,7 @@ try {
   const wechatAuth = await page.evaluate(() => window.desktop.inspect({ url: 'https://weixin.qq.com/sph/Abc123xyz', useBrowser: false, useSession: true }));
   assert.equal(wechatAuth.ok, false); assert.equal(wechatAuth.error.code, 'SESSION_REQUIRED');
   await page.getByLabel('视频链接').fill('https://www.youtube.com/watch?v=abcdefghijk');
-  assert.equal(await page.getByRole('checkbox').isChecked(), false);
+  assert.equal(await page.locator('.source-access input[type=checkbox]').isChecked(), false);
   await page.getByLabel('视频链接').fill('');
   await page.getByRole('button', { name: '设置与帮助', exact: true }).click();
   await page.screenshot({ path: join(reportDirectory, 'packaged-app.png'), fullPage: true, animations: 'disabled' });

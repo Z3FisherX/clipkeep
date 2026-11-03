@@ -1,0 +1,10 @@
+.settings-section { padding: 16px 0; border-top: 1px solid var(--line); }
+.settings-section h3 { font-size: 15px; margin: 0 0 12px; }
+.settings-section p { font-size: 13px; line-height: 1.6; margin: 10px 0; }
+.settings-section .settings-field { margin: 12px 0; gap: 12px; flex-wrap: wrap; }
+.tool-row { display: grid; gap: 6px; padding: 12px 0; border-bottom: 1px solid var(--line); font-size: 13px; }
+.tool-row code, .checksum { overflow-wrap: anywhere; font-size: 12px; }
+.install-command { display: block; user-select: text; margin: 10px 0; }
+.release-notes { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 220px; overflow: auto; }
+.confirmation { padding: 12px; margin: 12px 0; background: #f0f3ed; border-radius: 8px; }
+.confirmation button { margin: 4px 8px 4px 0; }

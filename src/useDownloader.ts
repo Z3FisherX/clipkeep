@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { Snapshot } from '../shared/contracts';
 import type { QualityPolicy } from '../shared/tasks';
 import { preferredQuality } from '../shared/tasks';
@@ -12,20 +12,31 @@ export function useDownloader() {
   const [state, setState] = useState(initial);
   const d = useDraftState(), a = useAsyncAction();
   const queueActions = useAsyncAction();
-  const draftActions = useDraftActions(state, d, a), submit = useSubmission(d, a);
+  const [location, setLocation] = useState<{ id: string; token: number }>();
+  const focusTask = (id: string) => setLocation(previous => ({ id, token: (previous?.token ?? 0) + 1 }));
+  const draftActions = useDraftActions(state, d, a), submit = useSubmission(d, a, focusTask);
+  const accessResume = useRef<string | undefined>(undefined);
+  const platform = platformFromInput(d.url);
+  const sessionReady = state.access?.find(value => value.platform === platform)?.ready;
+  useEffect(() => {
+    if (sessionReady && accessResume.current === d.url && !a.pending && !state.inspecting) {
+      accessResume.current = undefined; draftActions.readWithSession();
+    }
+  }, [sessionReady, a.pending, state.inspecting]);
   useEffect(() => {
     const off = window.desktop.onChange(setState);
     void window.desktop.snapshot().then(result => { if (result.ok) setState(result.value); });
     return off;
   }, []);
   useEffect(() => { if (state.preferences && !d.recovering) d.setMode(state.preferences.mode); }, [state.preferences?.mode]);
+  useEffect(() => { if (state.preferences && !d.recovering) d.setEncoding(state.preferences.encoding ?? 'compatible'); }, [state.preferences?.encoding]);
   useEffect(() => { queueActions.setError(undefined); }, [d.url]);
-  return { ...d, ...a, ...draftActions, state, busy: a.pending || state.inspecting,
-    act: queueActions.act, queuePending: queueActions.pending, error: a.error ?? queueActions.error,
+  return { ...d, ...a, ...draftActions, state, location, focusTask, busy: a.pending || state.inspecting,
+    act: queueActions.act, queuePending: queueActions.pending, error: queueActions.error ?? a.error,
     setPolicy: (value: QualityPolicy) => a.act(() => window.desktop.preferences({ quality: value }), () => {
       if (d.info) d.setQuality(preferredQuality(d.info, value)?.id ?? '');
     }),
-    openAccess: () => a.act(() => window.desktop.openAccess({ url: d.url }), () => d.setAccessUrl(d.url), false),
+    openAccess: () => { accessResume.current = d.url; return a.act(() => window.desktop.openAccess({ url: d.url }), () => d.setAccessUrl(d.url), false); },
     clearAccess: () => {
       d.setSession(false); d.setCandidate(undefined); d.setInfo(undefined); const platform = platformFromInput(d.url);
       if (isAccessPlatform(platform)) void a.act(() => window.desktop.clearAccess({ platform }));

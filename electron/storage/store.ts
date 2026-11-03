@@ -1,4 +1,4 @@
-import { mkdir, readFile, rename, open } from 'node:fs/promises';
+import { mkdir, readFile, rename, open, unlink } from 'node:fs/promises';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { stateSchema, type StoredState } from './schema';
@@ -10,6 +10,16 @@ export class TaskStore {
   message?: string;
   constructor(private directory: string) {}
   async load(directory: string): Promise<StoredState> {
+    const pending = await readFile(join(this.directory, 'privacy-pending.json'), 'utf8').catch(error => {
+      if (typeof error === 'object' && error && 'code' in error && error.code === 'ENOENT') return undefined;
+      throw new AppError('STORAGE', '隐私清理事务需要恢复');
+    });
+    if (pending !== undefined) {
+      try {
+        const value = stateSchema.parse(JSON.parse(pending));
+        await this.replace(value); this.message = '已完成隐私清理恢复'; return value;
+      } catch { this.blocked = true; throw new AppError('STORAGE', '隐私清理事务需要恢复'); }
+    }
     for (const name of ['tasks.json', 'tasks.backup.json']) {
       try {
         const value = stateSchema.parse(JSON.parse(await readFile(join(this.directory, name), 'utf8')));
@@ -34,6 +44,19 @@ export class TaskStore {
     });
     this.tail = operation.catch(() => {});
     return operation.catch(() => { throw new AppError('STORAGE', '任务保存需要恢复，请检查磁盘空间与应用数据目录权限'); });
+  }
+  replace(state: StoredState): Promise<void> {
+    const text = JSON.stringify(stateSchema.parse(state));
+    const operation = this.tail.then(async () => {
+      await mkdir(this.directory, { recursive: true, mode: 0o700 });
+      await this.atomic('privacy-pending.json', text);
+      await this.atomic('tasks.json', text);
+      await this.atomic('tasks.backup.json', text);
+      await unlink(join(this.directory, 'privacy-pending.json'));
+      this.previous = text; this.blocked = false;
+    });
+    this.tail = operation.catch(() => {});
+    return operation.catch(() => { this.blocked = true; throw new AppError('STORAGE', '隐私清理已记录，请恢复磁盘空间与权限后重新打开'); });
   }
   private async atomic(name: string, text: string) {
     const temporary = join(this.directory, `${name}.${randomUUID()}.tmp`);

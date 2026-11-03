@@ -4,6 +4,7 @@ import type { QueueModel } from './model';
 import type { DownloadService } from '../service';
 import { prepareDirectory } from './files';
 import { restoreContext } from './recovery';
+import { cleanTaskRecovery } from '../files/recovery';
 const INPUT_ERRORS = ['SESSION_REQUIRED', 'SESSION_LOGIN_REQUIRED', 'SOURCE_EXPIRED', 'LOGIN_REQUIRED', 'LOGIN_REQUIRED_WITH_BROWSER',
   'BOT_CHECK', 'BOT_CHECK_WITH_BROWSER', 'BROWSER_PERMISSION', 'BROWSER_AUTH_FAILED', 'DIRECTORY', 'PERMISSION', 'FORMAT', 'FORMAT_EXPIRED', 'EXISTS', 'FILE', 'SHARE_LINK_REQUIRED'];
 export class Scheduler {
@@ -37,6 +38,7 @@ export class Scheduler {
     this.model.active = { id: task.id, worker };
     task.status = 'running'; task.phase = '准备下载'; task.error = undefined; task.attempt++;
     task.percent = 0; task.endedAt = undefined;
+    task.startedAt = Date.now(); task.phaseStartedAt = task.startedAt; task.stagePercent = undefined;
     task.updatedAt = Date.now(); this.model.emit();
     return { task, worker };
   }
@@ -57,11 +59,15 @@ export class Scheduler {
   }
   private async finish(task: TaskRecord) {
     const done = task.status === 'done';
+    if (done) task.trashed = false;
     if (!done) {
       if (this.model.stopping) { task.status = 'interrupted'; task.phase = '等待恢复'; }
       else if (this.cancelled.has(task.id)) { task.status = 'cancelled'; task.phase = '已取消'; }
     }
     task.updatedAt = Date.now(); task.endedAt = task.updatedAt;
+    if ((this.model.state.preferences.retentionDays ?? 7) === 0) {
+      try { await cleanTaskRecovery(task); } catch { this.model.message = '恢复文件清理需要检查，请打开设置查看占用'; }
+    }
     try {
       if (done) this.model.runtime.delete(task.id);
       await this.model.save();

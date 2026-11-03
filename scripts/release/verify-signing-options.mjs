@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';
+import { signingOptions } from './signing.mjs';
+const local = signingOptions({});
+assert.equal(local.osxSign.identity, '-');
+assert.equal(local.osxSign.optionsForFile().hardenedRuntime, false);
+assert.equal(local.osxNotarize, undefined);
+assert.throws(() => signingOptions({ CLIPKEEP_RELEASE_MODE: 'developer-id' }));
+const release = signingOptions({ CLIPKEEP_RELEASE_MODE: 'developer-id', CLIPKEEP_SIGN_IDENTITY: 'Developer ID Application: Fixture', CLIPKEEP_NOTARY_PROFILE: 'fixture-profile' });
+assert.equal(release.osxSign.optionsForFile().hardenedRuntime, true);
+assert.equal(release.osxNotarize.keychainProfile, 'fixture-profile');
+assert.equal(release.osxSign.ignore, undefined);
+console.log('PASS local and Developer ID signing configurations; release requires explicit identity and notary profile');

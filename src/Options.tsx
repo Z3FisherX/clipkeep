@@ -1,6 +1,7 @@
 import type { Controller } from './useDownloader';
 import { Icon } from './Icons';
 import { platformFromInput, platformName, supportsBrowserAuth } from '../shared/platforms';
+import { estimateSpace, formatBytes } from '../shared/files';
 export function Source({ c }: { c: Controller }) {
   const platform = c.info?.platform ?? platformFromInput(c.url);
   return <section className="source">
@@ -21,10 +22,11 @@ export function Source({ c }: { c: Controller }) {
   </section>;
 }
 export function OutputOptions({ c }: { c: Controller }) {
+  const original = c.encoding === 'original';
   return <section className="options"><div className="section-line"><h2 className="field-label">保存格式</h2>
     <label className="quality">清晰度 <select aria-label="清晰度" value={c.quality} onChange={e => c.setQuality(e.target.value)} disabled={c.busy || !c.info || c.mode === 'audio'}>
       <option value="">{c.info ? '选择清晰度' : '读取后选择'}</option>
-      {c.info?.qualities.map(q => <option key={q.id} value={q.id}>{q.label}{q.needsConversion ? ' · 本机转换' : ''}</option>)}
+      {c.info?.qualities.map(q => <option key={q.id} value={q.id}>{q.label}{q.needsConversion && !original ? ' · 本机转换' : ''}</option>)}
     </select></label></div>
     <div className="output-grid" role="group" aria-label="保存内容">
       {([{ mode: 'video', title: '带声视频', format: 'MP4', icon: 'play' },
@@ -33,9 +35,11 @@ export function OutputOptions({ c }: { c: Controller }) {
         <button key={item.mode} className={`output-card ${c.mode === item.mode ? 'selected' : ''}`}
           aria-pressed={c.mode === item.mode} disabled={c.busy || (!!c.info && ((item.mode !== 'video' && !c.info.audioId) || (item.mode !== 'audio' && !c.info.qualities.length)))}
           onClick={() => c.setMode(item.mode)}><span className="output-icon"><Icon name={item.icon} size={24} /></span>
-          <span className="output-copy"><strong>{item.mode === 'video' && c.info?.hasAudio === false ? '视频' : item.title}</strong><span className="format">{item.format}</span></span>
+          <span className="output-copy"><strong>{item.mode === 'video' && c.info?.hasAudio === false ? '视频' : item.title}</strong><span className="format">{original ? item.mode === 'both' ? 'MKV + MKA' : item.mode === 'audio' ? 'MKA' : 'MKV' : item.format}</span></span>
           <span className="selection-dot">{c.mode === item.mode && <Icon name="check" size={12} />}</span></button>)}
     </div>
+    <label className="preference-row">编码<select aria-label="输出编码" disabled={c.busy} value={c.encoding} onChange={e => c.setEncoding(e.target.value as 'compatible' | 'original')}><option value="compatible">兼容播放 · MP4 / M4A</option><option value="original">保留原编码 · MKV / MKA</option></select></label>
+    {c.info && <p className="space-estimate">下载与转换预计预留 {formatBytes(estimateSpace({ info: c.info, mode: c.mode, qualityId: c.quality, encoding: c.encoding }))}</p>}
   </section>;
 }
 export function Destination({ c }: { c: Controller }) {

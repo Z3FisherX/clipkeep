@@ -1,7 +1,7 @@
 {
   "name": "clipkeep",
   "productName": "拾片",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "description": "个人 Mac 视频与音频下载工具",
   "private": true,
   "type": "module",
@@ -32,7 +32,11 @@
     "check": "npm run check:public && npm run audit:dependencies && npm run typecheck && npm run lint && npm test && npm run build",
     "release:archive": "node scripts/release/archive.mjs",
     "test:layout": "node scripts/desktop-layout-smoke.mjs",
-    "audit:dependencies": "npm audit --audit-level=high"
+    "audit:dependencies": "npm audit --audit-level=high",
+    "test:experience-ui": "node scripts/user-experience-smoke.mjs",
+    "test:recovery-ui": "node scripts/user-recovery-smoke.mjs",
+    "test:experience-media": "node --import tsx scripts/verify-user-media.ts",
+    "check:signing": "node scripts/release/verify-signing-options.mjs"
   },
   "dependencies": {
     "react": "^19.3.1",

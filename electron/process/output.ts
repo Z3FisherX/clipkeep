@@ -7,11 +7,11 @@ export class ProcessOutput {
   private pending = '';
   private bytes = 0;
 
-  constructor(private limit: number, private onLine?: (line: string) => void) {}
+  constructor(private limit: number, private onLine?: (line: string) => void, private capture = true) {}
 
   write(chunk: Buffer) {
     this.bytes += chunk.length;
-    if (this.bytes > this.limit) throw new AppError('OUTPUT_LIMIT', '工具返回的数据异常过大，已停止。');
+    if (this.capture && this.bytes > this.limit) throw new AppError('OUTPUT_LIMIT', '工具返回的数据异常过大，已停止。');
     this.append(this.decoder.write(chunk));
   }
 
@@ -23,10 +23,11 @@ export class ProcessOutput {
   }
 
   private append(text: string) {
-    this.chunks.push(text);
+    if (this.capture) this.chunks.push(text);
     if (!this.onLine) return;
     const lines = (this.pending + text).split(/[\r\n]/);
     this.pending = lines.pop() ?? '';
+    if (!this.capture && Buffer.byteLength(this.pending) > this.limit) throw new AppError('OUTPUT_LIMIT', '工具返回的数据异常过大，已停止。');
     for (const line of lines) this.onLine(line);
   }
 }

@@ -45,7 +45,7 @@ export async function fetchSource(job: Job, tools: Tools, runner: Runner, signal
       if (!progress) return;
       parts.set(progress.formatId, progress.percent);
       const value = [...parts.values()].reduce((sum, percent) => sum + percent, 0) / (split ? 2 : 1);
-      update({ percent: Math.max(job.percent, Math.min(85, Math.round(value * 0.85))), detail: progress.detail });
+      update({ percent: Math.max(job.percent, Math.min(85, Math.round(value * 0.85))), stagePercent: Math.min(100, value), detail: progress.detail });
     },
   });
   if (signal.aborted) throw new AppError('CANCELLED', '已取消，临时文件已保留。');

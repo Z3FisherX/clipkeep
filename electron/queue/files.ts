@@ -1,8 +1,11 @@
-import { access, lstat, realpath, statfs, mkdtemp } from 'node:fs/promises';
+import { access, lstat, realpath, statfs, mkdtemp, mkdir } from 'node:fs/promises';
 import { constants } from 'node:fs';
 import { join, sep, resolve } from 'node:path';
 import type { TaskRecord } from '../../shared/tasks';
 import { AppError } from '../errors';
+import { estimateSpace, formatBytes } from '../../shared/files';
+import { safeStem } from '../validation';
+import { platformName } from '../../shared/platforms';
 export async function checkDirectory(directory: string) {
   try {
     const path = await realpath(directory);
@@ -11,9 +14,19 @@ export async function checkDirectory(directory: string) {
   } catch { throw new AppError('DIRECTORY', '保存位置需要重新确认，请选择可写入的目录'); }
 }
 export async function prepareDirectory(task: TaskRecord) {
-  const root = await checkDirectory(task.settings.directory);
+  let root = await checkDirectory(task.settings.directory);
   const disk = await statfs(root);
-  if (disk.bavail * disk.bsize < 256 * 1024 ** 2) throw new AppError('ENOSPC', '请释放保存磁盘的空间后继续队列');
+  const estimate = estimateSpace(task);
+  if (disk.bavail * disk.bsize < estimate) throw new AppError('ENOSPC', `此任务预计需要 ${formatBytes(estimate)} 下载与转换空间，请释放空间后继续队列`);
+  if (!task.directory && task.settings.organization && task.settings.organization !== 'task') {
+    const name = task.settings.organization === 'platform' ? platformName(task.info.platform)
+      : task.settings.organization === 'author' ? task.info.uploader : new Date(task.createdAt).toISOString().slice(0, 10);
+    const organized = join(root, safeStem(name));
+    await mkdir(organized, { recursive: true });
+    const actual = await realpath(organized);
+    if (!actual.startsWith(root + sep) || (await lstat(organized)).isSymbolicLink()) throw new AppError('DIRECTORY', '分类目录归属需要检查');
+    root = actual;
+  }
   if (!task.directory) task.directory = await mkdtemp(join(root, '拾片-'));
   await taskDirectory(task);
 }

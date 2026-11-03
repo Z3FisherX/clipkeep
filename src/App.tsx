@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useDownloader } from './useDownloader';
 import { Icon } from './Icons';
 import { Destination, OutputOptions, Privacy, Source } from './Options';
 import { VideoPreview } from './Status';
 import { TaskPanel } from './features/tasks/TaskPanel';
 import { BatchPanel } from './features/tasks/BatchPanel';
+import { useBatch } from './features/tasks/useBatch';
 import { UtilityPanel } from './features/workspace/UtilityPanel';
 import { WebAccess } from './access/WebAccess';
 import { ReadRecovery } from './ReadRecovery';
@@ -13,18 +14,24 @@ import appIcon from '../assets/brand/clipkeep-mark-128.png';
 
 export function App() {
   const c = useDownloader();
+  const batch = useBatch(c);
   const [panel, setPanel] = useState<'batch' | 'settings' | null>(null);
   const ready = c.state.tools.length === 4 && c.state.tools.every(tool => tool.ready);
-  return <div className="app-shell">
+  useEffect(() => {
+    const key = (event: KeyboardEvent) => { if ((event.metaKey || event.ctrlKey) && event.key === 'l') { event.preventDefault(); document.getElementById('url')?.focus(); } };
+    window.addEventListener('keydown', key); return () => window.removeEventListener('keydown', key);
+  }, []);
+  return <div className={`app-shell density-${c.state.preferences?.density ?? 'standard'}`}>
     <header className="titlebar"><img src={appIcon} alt="" /><h1>拾片 <span>Clipkeep</span></h1>
-      <span className="window-status"><span className={`status-dot ${ready ? '' : 'warning'}`} />{ready ? '已就绪' : '检查工具'}</span>
+      <button className="window-status text-button" onClick={() => setPanel('settings')}><span className={`status-dot ${ready ? '' : 'warning'}`} />{ready ? '已就绪' : '准备运行工具'}</button>
     </header>
     <main className="desktop-workspace">
       <section className="composer" aria-label="新建下载">
         <div className="pane-heading"><h2>新建下载</h2><button className="text-button" onClick={() => setPanel('batch')}>批量添加</button></div>
         <div className="composer-content">
+          {!ready && <div className="preparation-notice" role="status">准备运行工具后开始下载 <button onClick={() => setPanel('settings')}>打开准备流程</button></div>}
           <Source c={c} />
-          <details className="source-access"><summary>登录与访问</summary><Privacy c={c} /><WebAccess c={c} /></details>
+          <details className="source-access" open={c.url.includes('weixin') || c.url.includes('wechat') || c.error?.code.startsWith('SESSION')}><summary>登录与访问</summary><Privacy c={c} /><WebAccess c={c} /></details>
           <ReadRecovery c={c} /><VideoPreview c={c} />
           {c.recovering && <p className="recovery-notice">正在更新任务来源 <button className="text-button" onClick={c.clearRecovery}>改为新任务</button></p>}
           <div className="save-settings"><OutputOptions c={c} /><Destination c={c} /></div>
@@ -36,8 +43,10 @@ export function App() {
       </section>
       <TaskPanel c={c} />
     </main>
-    <footer className="utility-bar"><button className="text-button" onClick={() => setPanel('settings')}>设置与帮助</button><span>{version}{c.state.mock ? ' · 测试模式' : ''}</span></footer>
-    <UtilityPanel title="批量添加" open={panel === 'batch'} close={() => setPanel(null)}><BatchPanel c={c} onPrepare={() => setPanel(null)} /></UtilityPanel>
+    <footer className="utility-bar"><button className="text-button" onClick={() => setPanel('settings')}>设置与帮助</button>
+      {batch.items.length > 0 && <button className="text-button" onClick={() => setPanel('batch')}>批量{batch.busy ? '读取中' : '已保留'} {batch.readCount}/{batch.items.length}</button>}
+      <span>{version}{c.state.mock ? ' · 测试模式' : ''}</span></footer>
+    <UtilityPanel title="批量添加" open={panel === 'batch'} close={() => setPanel(null)}><BatchPanel c={c} b={batch} /></UtilityPanel>
     <UtilityPanel title="设置与帮助" open={panel === 'settings'} close={() => setPanel(null)} c={c} />
   </div>;
 }

@@ -19,7 +19,14 @@ const page = await app.firstWindow();
 const errors = [], checks = [];
 page.on('pageerror', error => errors.push(error.message));
 const snapshot = () => page.evaluate(async () => (await window.desktop.snapshot()).value);
-const inspect = address => page.evaluate(url => window.desktop.inspect({ url, useBrowser: false, useSession: true }), address);
+async function inspect(address) {
+  for (let i = 0; i < 100; i++) {
+    const reply = await page.evaluate(url => window.desktop.inspect({ url, useBrowser: false, useSession: true }), address);
+    if (reply.ok || reply.error.code !== 'BUSY') return reply;
+    await new Promise(done => setTimeout(done, 50));
+  }
+  throw new Error('Session read remained busy');
+}
 async function waitFor(check) {
   for (let i = 0; i < 250; i++) { const value = await check(); if (value) return value; await new Promise(done => setTimeout(done, 100)); }
   throw new Error('UI condition timed out');
@@ -62,8 +69,8 @@ try {
   await page.getByRole('button', { name: '读取视频', exact: true }).click();
   await page.getByRole('alert').filter({ hasText: '网页登录窗口' }).waitFor();
   assert.equal((await inspect(url)).error.code, 'SESSION_REQUIRED');
-  await page.getByText('登录与访问', { exact: true }).click();
-  await page.getByRole('button', { name: '打开元宝登录', exact: true }).click();
+  await page.locator('.source-access').evaluate(element => { element.open = true; });
+  await page.locator('.web-access').getByRole('button', { name: '打开元宝登录', exact: true }).click();
   const toolbar = await sessionWindow();
   await toolbar.getByRole('button', { name: '使用此会话', exact: true }).click();
   await toolbar.getByText('请完成元宝登录，再点击「使用此会话」。', { exact: true }).waitFor();
@@ -74,8 +81,7 @@ try {
     .every(value => value.getLastWebPreferences().sandbox && value.getLastWebPreferences().contextIsolation && !value.session.isPersistent()));
   assert.ok(isolated); checks.push('manual authorization and sandboxed memory session');
   await toolbar.getByRole('button', { name: '返回拾片', exact: true }).click();
-  await page.getByRole('button', { name: '读取视频', exact: true }).click();
-  await page.getByRole('heading', { name: '视频号测试影片', exact: true }).waitFor();
+  await page.locator('.video-preview').getByRole('heading', { name: '视频号测试影片', exact: true }).waitFor();
   await page.getByRole('button', { name: '视频 + 音频 MP4 + M4A', exact: true }).click();
   await startDownload(page); const job = await waitDone();
   assert.equal(job.outputs.length, 2); assert.equal(job.info.platform, 'wechat'); checks.push('single link MP4 and M4A');
@@ -84,7 +90,7 @@ try {
   const expired = await inspect(url + '4'); assert.equal(expired.error.code, 'SESSION_LOGIN_REQUIRED');
   assert.equal((await snapshot()).access.find(value => value.platform === 'wechat').ready, false);
   await unlink(join(root, 'wechat-expired'));
-  await page.getByRole('button', { name: '打开元宝登录', exact: true }).click();
+  await page.locator('.web-access').getByRole('button', { name: '打开元宝登录', exact: true }).click();
   const reopened = await sessionWindow(); await authorize(reopened);
   assert.equal((await inspect(url + '4')).ok, true); checks.push('expired session reauthorization');
   await reopened.getByRole('button', { name: '返回拾片', exact: true }).click();

@@ -44,10 +44,19 @@ npm run release:archive
 6. 在 GitHub Releases 创建预发布，附 ZIP、SHA256SUMS 和版本说明。
 7. 使用新 macOS 用户环境验收解压、首次打开、工具准备和第一条下载。
 
-当前流程采用本地 ad-hoc 签名。更广范围发行时，将 Developer ID 签名、公证与首次安装体验纳入独立发布改动。
+默认打包采用本地 ad-hoc 签名。Developer ID 模式由 `scripts/release/signing.mjs` 生成配置，校验明确指定的 Application 身份与用户已经配置的公证 profile，并启用 Hardened Runtime、时间戳与公证。
+
+```sh
+CLIPKEEP_RELEASE_MODE=developer-id CLIPKEEP_SIGN_IDENTITY='Developer ID Application: Your Name (TEAMID)' CLIPKEEP_NOTARY_PROFILE='your-existing-profile' npm run package
+node scripts/release/verify-signing.mjs 'release/拾片-darwin-arm64/拾片.app' evidence/signing.json
+```
+
+证书安装、账号与钥匙串授权由维护者本人完成。发行验收要求 `codesign --verify --deep --strict`、Developer ID 身份、公证装订票据和 Gatekeeper 评估全部通过。本机 ad-hoc 证据与 Developer ID 发行证据分别记录。打包在签名前校验固定上游 yt-dlp；Developer ID 模式对嵌入工具签名后的字节以最终发行归档 SHA256 为准。
+
+应用内更新从固定 GitHub 仓库读取发布信息，安装包下载后校验官方 SHA256、归档路径、签名和公证，再通过 Finder 提供安装。解析器独立保存在应用数据目录，通过暂存校验及原子替换升级，已有应用内版本保留作回退。
 
 ## 验证证据
 
 本地报告保存于 `evidence/`；GitHub 的运行状态与日志以仓库 Actions 实际执行结果为准。安装包验收覆盖真实工具检测、页面隔离、平台入口和授权重置；平台下载行为由受控来源及相应实测记录覆盖。
 
-官方参考：[GitHub Releases](https://docs.github.com/en/repositories/releasing-projects-on-github/about-releases)、[macOS runner](https://docs.github.com/en/actions/reference/runners/github-hosted-runners)、[yt-dlp 许可说明](https://github.com/yt-dlp/yt-dlp#license)。
+官方参考：[Electron 签名与公证](https://www.electronjs.org/docs/latest/tutorial/code-signing)、[Forge macOS 签名](https://www.electronforge.io/guides/code-signing/code-signing-macos)、[GitHub Releases](https://docs.github.com/en/repositories/releasing-projects-on-github/about-releases)、[macOS runner](https://docs.github.com/en/actions/reference/runners/github-hosted-runners)、[yt-dlp 许可说明](https://github.com/yt-dlp/yt-dlp#license)。

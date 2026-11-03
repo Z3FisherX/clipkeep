@@ -8,15 +8,20 @@ import { Scheduler } from './scheduler';
 import { inspect, enqueue } from './drafts';
 import { checkDirectory, outputPath } from './files';
 import { perform } from './actions';
+import { cleanRecovery } from '../files/recovery';
 export class QueueService {
   readonly model: QueueModel;
   private scheduler: Scheduler;
   constructor(options: QueueOptions) { this.model = new QueueModel(options); this.scheduler = new Scheduler(this.model); }
-  initialize() { return this.model.initialize(); }
+  async initialize() {
+    await this.model.initialize();
+    if (!this.model.storageUnavailable) await cleanRecovery(this.model.state.tasks, this.model.state.preferences.retentionDays ?? 7, true)
+      .catch(() => { this.model.message = '部分恢复文件需要检查，请在设置中查看'; });
+  }
   snapshot() { return this.model.snapshot(); }
   refreshAccess() { this.model.emit(); }
   get busy() { return this.model.pumping || !!this.model.reading; }
-  async checkTools() { this.model.optionsTools = await this.model.options.detect(); this.model.emit(); return this.model.optionsTools; }
+  async checkTools() { this.model.optionsTools = await this.model.toolsCache.get(true); this.model.emit(); return this.model.optionsTools; }
   inspect(url: string, useBrowser: boolean, videoIndex?: number, access: Omit<AccessInput, 'useBrowser'> = {}) {
     return inspect(this.model, url, { ...access, useBrowser }, videoIndex);
   }
@@ -65,7 +70,8 @@ export class QueueService {
     const text = (query.text ?? '').trim().toLowerCase();
     const tasks = this.model.state.tasks.filter(t => isFinished(t) && t.id !== this.model.active?.id && (!query.status || t.status === query.status)
       && `${t.info.title} ${t.info.uploader}`.toLowerCase().includes(text)).sort((a, b) => b.updatedAt - a.updatedAt);
-    const page = Math.max(0, Math.min(query.page ?? 0, Math.max(0, Math.ceil(tasks.length / 30) - 1)));
+    const located = query.id ? tasks.findIndex(task => task.id === query.id) : -1;
+    const page = Math.max(0, Math.min(located >= 0 ? Math.floor(located / 30) : query.page ?? 0, Math.max(0, Math.ceil(tasks.length / 30) - 1)));
     return { items: tasks.slice(page * 30, page * 30 + 30), total: tasks.length, page };
   }
   task(id: string) { return this.model.task(id); }

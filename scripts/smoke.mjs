@@ -65,7 +65,7 @@ try {
   assert.ok((await readdir(join(cancelled.directory, '.work'))).some(name => name.endsWith('.part')));
   mark('重复点击仅一个任务；取消保留 .part');
   await page.getByRole('tab', { name: '历史', exact: true }).click();
-  await page.getByRole('button', { name: '重试任务' }).click();
+  await page.getByRole('button', { name: '重新排队', exact: true }).click();
   await page.getByRole('button', { name: '继续队列', exact: true }).click();
   await waitStatus('done');
   const done = (await state()).job;
@@ -83,7 +83,7 @@ try {
   await page.screenshot({ path: 'evidence/ui-error.png', fullPage: true });
   await unlink(join(root, 'fail-download'));
   await page.getByRole('tab', { name: '历史', exact: true }).click();
-  await page.getByRole('button', { name: '重试任务' }).click();
+  await page.getByRole('button', { name: '重新排队', exact: true }).click();
   await page.getByRole('button', { name: '继续队列', exact: true }).click();
   await waitStatus('done');
   assert.deepEqual(await readFile(mp4), original);
@@ -91,7 +91,7 @@ try {
   await writeFile(join(root, 'missing-tool'), '1');
   await page.getByRole('button', { name: '设置与帮助', exact: true }).click();
   await page.getByRole('button', { name: '重新检测' }).click();
-  await page.getByText('缺失或无法启动', { exact: true }).waitFor();
+  await page.locator('.tool-row').filter({ hasText: 'ffmpeg' }).getByText('请选择工具或完成安装', { exact: true }).waitFor();
   assert.equal(await page.getByRole('button', { name: '开始下载' }).isDisabled(), true);
   await unlink(join(root, 'missing-tool'));
   await page.getByRole('button', { name: '重新检测' }).click();

@@ -39,3 +39,15 @@
 测试使用独立临时目录及本地生成媒体，`evidence/` 存放运行证据。证据记录命令、退出码、摘要、日志以及对应源码和配置状态。共享媒体服务输入保持一致时可复用验证；新修改执行受影响入口。
 
 实际平台探测命令 `probe:platforms` 和 `probe:expansion` 使用公网来源，其结果与当时网络、账号权限及平台响应有关。日常 CI 采用受控来源。
+
+
+## 0.8.0 用户体验验收
+
+- `npm run test:experience-ui`：结果、重试、重复定位、批量控制、工具准备、元宝返回、两种密度与三尺寸布局。
+- `npm run test:recovery-ui`：后台生命周期、Dock/休眠资源、成品删除选择、复用恢复、移动关联、备份清理及批量授权返回。
+- `npm run test:experience-media`：真实 VP9/Opus 原编码 MKV/MKA、兼容转换、双输出复用、取消恢复与完整校验。
+- `npm run check:signing`：本机与 Developer ID 配置，以及发行身份/profile 的必填约束。
+- `node scripts/verify-experience.mjs`：记录源码/依赖指纹、命令、退出码和日志。
+- `tests/user-experience.test.ts`、`tests/maintenance.test.ts`：事务、幂等、保留期限、硬链接、关联校验、工具缓存与升级安全。
+
+隔离验收证据保存在 `evidence/user-optimization-20261103/`；范围和通过条件见 [范围决策表](USER-OPTIMIZATION-20261103.md)。

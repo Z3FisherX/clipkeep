@@ -1,5 +1,6 @@
 import type { Controller } from './useDownloader';
 import { platformFromInput, supportsBrowserAuth } from '../shared/platforms';
+import { isAccessPlatform } from '../shared/access';
 const anonymousAuthCodes = ['BOT_CHECK', 'LOGIN_REQUIRED'];
 const browserAuthCodes = ['BOT_CHECK_WITH_BROWSER', 'LOGIN_REQUIRED_WITH_BROWSER', 'BROWSER_AUTH_FAILED', 'BROWSER_PERMISSION'];
 export function ReadRecovery({ c }: { c: Controller }) {
@@ -9,8 +10,12 @@ export function ReadRecovery({ c }: { c: Controller }) {
   const browser = eligible && browserAuthCodes.includes(c.error.code);
   const localAccess = ['BROWSER_AUTH_FAILED', 'BROWSER_PERMISSION'].includes(c.error.code);
   const cancelled = c.error.code === 'CANCELLED';
+  const platform = platformFromInput(c.url);
+  const session = isAccessPlatform(platform) && ['SESSION_REQUIRED', 'SESSION_LOGIN_REQUIRED', 'SOURCE_EXPIRED', 'LOGIN_REQUIRED', 'BOT_CHECK'].includes(c.error.code);
   return <div className={`error-banner read-recovery ${cancelled ? 'cancelled-read' : ''}`} role="alert">
     <strong>{c.error.message}</strong>
+    {session && <button className="primary" disabled={c.busy} onClick={() => void c.openAccess()}>{platform === 'wechat' ? '打开元宝登录' : '打开平台网页登录'}</button>}
+    {c.error.taskId && <button className="secondary" onClick={() => c.focusTask(c.error!.taskId!)}>定位已有记录</button>}
     {(anonymous || browser) && <>
       {anonymous && <p className="consent-copy">下方操作将授权本机下载进程使用 Chrome 登录态访问当前视频平台。</p>}
       <div className="recovery-actions">
