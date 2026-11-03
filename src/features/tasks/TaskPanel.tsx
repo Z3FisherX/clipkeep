@@ -46,7 +46,7 @@ export function TaskPanel({ c }: { c: Controller }) {
       <select aria-label="历史状态" value={query.status ?? ''} onChange={e => setQuery({ ...query, status: (e.target.value || undefined) as HistoryQuery['status'], page: 0 })}><option value="">全部</option><option value="done">已完成</option><option value="failed">失败</option><option value="cancelled">已取消</option></select><button onClick={() => setConfirm(true)}>清空历史</button></div>
       {confirm && <div className="task-toolbar"><span>清空记录、同步备份与恢复文件，成品继续保留。</span><button onClick={() => void c.act(() => window.desktop.taskAction({ action: 'clearHistory' }), () => setConfirm(false))}>确认清空记录</button><button onClick={() => setConfirm(false)}>保留记录</button></div>}</>}
     <div className="task-list" role="tabpanel" aria-label={tab === 'queue' ? '当前任务' : '历史'} tabIndex={0}>
-    {(tab === 'queue' ? queue.tasks : history.items).map((task, index) => <TaskCard key={`${task.id}:${task.revision}`} task={task} index={index} c={c} history={tab === 'history'} />)}
+    {(tab === 'queue' ? queue.tasks : history.items).map(task => <TaskCard key={`${task.id}:${task.revision}`} task={task} c={c} history={tab === 'history'} />)}
     {tab === 'queue' && queue.tasks.length === 0 && <div className="empty-tasks"><span className="empty-icon"><Icon name="download" size={24} /></span><div><strong>等待添加任务</strong><p></p></div></div>}
     {tab === 'history' && history.items.length === 0 && <div className="empty-tasks"><span className="empty-icon"><Icon name="folder" size={24} /></span><div><strong>{query.text || query.status ? '试试其他关键词或状态' : '暂无历史记录'}</strong><p>{query.text || query.status ? '搜索标题、作者，或切换全部状态。' : ''}</p></div></div>}
     </div>

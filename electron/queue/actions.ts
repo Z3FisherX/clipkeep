@@ -1,5 +1,5 @@
 import type { TaskAction } from '../../shared/tasks';
-import { isFinished, preferredQuality } from '../../shared/tasks';
+import { isFinished, isReorderable, preferredQuality } from '../../shared/tasks';
 import { AppError } from '../errors';
 import type { QueueModel } from './model';
 import type { Scheduler } from './scheduler';
@@ -34,7 +34,8 @@ export async function perform(model: QueueModel, scheduler: Scheduler, input: Ta
     await cleanTaskRecovery(task);
     model.state.tasks = model.state.tasks.filter(t => t.id !== task.id); model.runtime.delete(task.id);
   } else if (input.action === 'move') {
-    const waiting = model.state.tasks.filter(t => !isFinished(t) && t.id !== task.id);
+    if (!isReorderable(task)) throw new AppError('TASK_ORDER', '请选择等待处理的任务调整顺序');
+    const waiting = model.state.tasks.filter(t => isReorderable(t) && t.id !== task.id);
     const before = waiting[Math.min(input.position ?? 0, waiting.length)];
     model.state.tasks = model.state.tasks.filter(t => t.id !== task.id);
     model.state.tasks.splice(before ? model.state.tasks.indexOf(before) : model.state.tasks.length, 0, task);

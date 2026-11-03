@@ -53,7 +53,7 @@ node scripts/release/verify-signing.mjs 'release/拾片-darwin-arm64/拾片.app'
 
 证书安装、账号与钥匙串授权由维护者本人完成。发行验收要求 `codesign --verify --deep --strict`、Developer ID 身份、公证装订票据和 Gatekeeper 评估全部通过。本机 ad-hoc 证据与 Developer ID 发行证据分别记录。打包在签名前校验固定上游 yt-dlp；Developer ID 模式对嵌入工具签名后的字节以最终发行归档 SHA256 为准。
 
-应用内更新从固定 GitHub 仓库读取发布信息，安装包下载后校验官方 SHA256、归档路径、签名和公证，再通过 Finder 提供安装。解析器独立保存在应用数据目录，通过暂存校验及原子替换升级，已有应用内版本保留作回退。
+应用内更新从固定 GitHub 仓库读取发布信息，安装包下载后校验官方 SHA256、归档路径、签名和公证，再通过 Finder 提供安装。解析器独立保存在应用数据目录，通过暂存校验及原子替换升级，升级前实际选用的随包、自选或应用内版本均保留已校验副本作回退。
 
 ## 验证证据
 

@@ -128,7 +128,9 @@ void app.whenReady().then(async () => {
   const ytdlp = app.isPackaged ? join(process.resourcesPath, 'yt-dlp') : join(app.getAppPath(), 'vendor/yt-dlp');
   const createProxy = systemProxyFactory(session.defaultSession);
   const runner = testRoot ? mockRunner(testRoot) : createNetworkRunner(run, createProxy);
-  toolSetup = new ToolSetup(app.getPath('userData'), runner); await toolSetup.load();
+  toolSetup = new ToolSetup(app.getPath('userData'), runner, async () =>
+    (await service.model.toolsCache.get()).find(tool => tool.name === 'yt-dlp' && tool.ready)?.path);
+  await toolSetup.load();
   accessManager = new AccessManager({ runner, createProxy: testRoot ? undefined : createProxy, redirectProbe: testRoot ? mockRedirectProbe : undefined, owner: () => window, changed: () => service?.refreshAccess(),
     prepareSession: testRoot ? async (value, captured) => {
       if (await access(join(testRoot, 'access-fixture')).then(() => true, () => false)) await prepareAccessFixture(value, testRoot, captured);

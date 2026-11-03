@@ -36,7 +36,8 @@
     "test:experience-ui": "node scripts/user-experience-smoke.mjs",
     "test:recovery-ui": "node scripts/user-recovery-smoke.mjs",
     "test:experience-media": "node --import tsx scripts/verify-user-media.ts",
-    "check:signing": "node scripts/release/verify-signing-options.mjs"
+    "check:signing": "node scripts/release/verify-signing-options.mjs",
+    "test:acceptance-revisions-ui": "node scripts/acceptance-revisions-smoke.mjs"
   },
   "dependencies": {
     "react": "^19.3.1",

@@ -1,4 +1,4 @@
-import { copyFile, lstat, mkdir, readFile, rename, writeFile, access } from 'node:fs/promises';
+import { copyFile, mkdir, readFile, rename, writeFile, access, unlink } from 'node:fs/promises';
 import { join } from 'node:path';
 import { z } from 'zod';
 import { randomUUID } from 'node:crypto';
@@ -14,7 +14,7 @@ export class ToolSetup {
   applicationCandidate?: ReleaseInfo;
   private locked = false;
   get busy() { return this.locked; }
-  constructor(readonly root: string, private runner: Runner) {}
+  constructor(readonly root: string, private runner: Runner, private resolveParser?: () => Promise<string | undefined>) {}
   async load() { this.paths = pathsSchema.parse(JSON.parse(await readFile(join(this.root, 'tool-paths.json'), 'utf8').catch(() => '{}'))); }
   async managed() {
     const path = join(this.root, 'tools/current/yt-dlp');
@@ -41,9 +41,17 @@ export class ToolSetup {
       const tool = await verifyTool('yt-dlp', binary, this.runner);
       if (!tool.ready || tool.version !== candidate.version) throw new AppError('TOOL_VERSION', '解析器版本或运行架构校验需要重试');
       await this.preserveCurrent();
+      const previousManaged = await this.managed(), saved = join(staged, 'previous-managed');
+      if (previousManaged) await copyFile(previousManaged, saved);
       await mkdir(join(this.root, 'tools/current'), { recursive: true, mode: 0o700 });
-      await rename(binary, join(this.root, 'tools/current/yt-dlp'));
-      await this.select('yt-dlp', join(this.root, 'tools/current/yt-dlp'));
+      const current = join(this.root, 'tools/current/yt-dlp');
+      await rename(binary, current);
+      try { await this.select('yt-dlp', current); }
+      catch (error) {
+        if (previousManaged) { await copyFile(saved, current + '.restore'); await rename(current + '.restore', current); }
+        else await unlink(current);
+        throw error;
+      }
     });
   }
   async rollback() {
@@ -58,11 +66,17 @@ export class ToolSetup {
     });
   }
   private async preserveCurrent() {
-    const current = join(this.root, 'tools/current'), previous = join(this.root, 'tools/previous');
-    if (!await lstat(current).catch(() => undefined)) return;
+    const current = this.paths['yt-dlp'] ?? await this.managed() ?? await this.resolveParser?.();
+    if (!current) throw new AppError('TOOL_MISSING', '请准备可用的解析工具后升级');
+    const original = await verifyTool('yt-dlp', current, this.runner);
+    if (!original.ready) throw new AppError('TOOL_VERSION', '升级前的解析工具需要运行校验');
+    const previous = join(this.root, 'tools/previous');
     await mkdir(previous, { recursive: true, mode: 0o700 });
     const temporary = join(previous, `yt-dlp-${randomUUID()}`);
-    await copyFile(join(current, 'yt-dlp'), temporary); await rename(temporary, join(previous, 'yt-dlp'));
+    await copyFile(current, temporary);
+    const copy = await verifyTool('yt-dlp', temporary, this.runner);
+    if (!copy.ready || copy.version !== original.version) throw new AppError('TOOL_VERSION', '回退副本需要重新校验');
+    await rename(temporary, join(previous, 'yt-dlp'));
   }
   async withLock<T>(operation: () => Promise<T>) {
     if (this.locked) throw new AppError('BUSY', '工具维护正在进行');

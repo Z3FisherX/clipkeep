@@ -24,6 +24,7 @@ export interface TaskAction {
 export interface HistoryQuery { text?: string; status?: 'done' | 'failed' | 'cancelled'; page?: number; id?: string }
 export interface HistoryPage { items: TaskRecord[]; total: number; page: number }
 export const isFinished = (task: Job) => ['done', 'failed', 'cancelled'].includes(task.status);
+export const isReorderable = (task: Job) => !isFinished(task) && !['running', 'cancelling'].includes(task.status);
 export function preferredQuality(info: VideoInfo, policy: QualityPolicy) {
   return [...info.qualities].filter(q => q.height > 0)
     .sort((a, b) => Math.min(b.width ?? b.height, b.height) - Math.min(a.width ?? a.height, a.height))

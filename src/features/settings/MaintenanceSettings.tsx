@@ -1,11 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import type { Controller } from '../../useDownloader';
 import type { MaintenanceReport } from '../../../shared/maintenance';
+import { useSettingsRead } from './useSettingsRead';
 export function MaintenanceSettings({ c, active }: { c: Controller; active: boolean }) {
-  const [report, setReport] = useState<MaintenanceReport>(), [confirm, setConfirm] = useState(false), [exported, setExported] = useState(false);
-  useEffect(() => { if (active) void c.act(() => window.desktop.maintenance('status'), value => setReport(current => ({ ...current, ...value }))); }, [active]);
+  const [confirm, setConfirm] = useState(false), [exported, setExported] = useState(false);
+  const { value: report, setValue: setReport, error } = useSettingsRead<MaintenanceReport>(() => window.desktop.maintenance('status'), active);
   const busy = c.queuePending || c.busy || !!c.state.queue?.activeId;
-  return <section className="settings-section"><h3>版本、维护与诊断</h3>
+  return <section className="settings-section"><h3>版本、维护与诊断</h3>{error && <p role="alert">{error}</p>}
     {report && <p>拾片 {report.applicationVersion} · {report.platform} / {report.architecture} · {report.packaged ? '已打包应用' : '本机源码运行'}</p>}
     <div className="task-buttons"><button disabled={busy} onClick={() => void c.act(() => window.desktop.maintenance('check'), setReport)}>检查应用与解析工具版本</button>
       <button onClick={() => void c.act(() => window.desktop.openHelp('application'))}>打开应用发行页</button><button onClick={() => void c.act(() => window.desktop.openHelp('licenses'))}>第三方来源与许可</button></div>

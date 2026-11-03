@@ -6,12 +6,14 @@ import { Icon } from '../../Icons';
 import { TaskFileRecovery, useTaskFiles } from './useTaskFiles';
 import { TaskProgress } from './TaskProgress';
 import { TaskFileManagement } from './TaskFileManagement';
-export function TaskCard({ task, c, index, history }: { task: TaskRecord; c: Controller; index: number; history?: boolean }) {
+import { isReorderable } from '../../../shared/tasks';
+export function TaskCard({ task, c, history }: { task: TaskRecord; c: Controller; history?: boolean }) {
   const [editing, setEditing] = useState(false);
   const [mode, setMode] = useState(task.mode);
   const [quality, setQuality] = useState<QualityPolicy>(task.settings.quality);
   const [useDirectory, setUseDirectory] = useState(false);
   const active = ['running', 'cancelling'].includes(task.status);
+  const waiting = c.state.queue?.tasks.filter(isReorderable) ?? [], index = waiting.findIndex(value => value.id === task.id);
   const action = (input: Omit<TaskAction, 'id'>) => c.act(() => window.desktop.taskAction({ ...input, id: task.id }));
   const { file, fileIssue } = useTaskFiles(task.id, c);
   const label = task.trashed ? '成品已移入废纸篓' : task.status === 'done' ? '下载完成' : task.status === 'queued' ? '等待下载' : task.phase;
@@ -34,7 +36,8 @@ export function TaskCard({ task, c, index, history }: { task: TaskRecord; c: Con
       {!task.trashed && task.outputs.map((path, output) => <button key={path} onClick={() => void file(output)}>打开{/\.(mp4|mkv)$/.test(path) ? '视频' : '音频'}</button>)}
       <details className="task-more"><summary>更多操作</summary><div className="task-buttons">
       <button onClick={() => void file(undefined, true)}>{task.info.platform === 'generic' ? '打开来源网站' : '查看来源'}</button>
-        {!active && !history && <><button onClick={() => void action({ action: 'move', position: Math.max(0, index - 1) })}>上移</button><button onClick={() => void action({ action: 'move', position: index + 1 })}>下移</button><button onClick={() => void action({ action: 'move', position: 0 })}>移到队首</button><button onClick={() => setEditing(!editing)}>编辑设置</button></>}
+        {!history && isReorderable(task) && <><button disabled={index <= 0 || c.queuePending} onClick={() => void action({ action: 'move', position: index - 1 })}>上移</button><button disabled={index >= waiting.length - 1 || c.queuePending} onClick={() => void action({ action: 'move', position: index + 1 })}>下移</button><button disabled={index <= 0 || c.queuePending} onClick={() => void action({ action: 'move', position: 0 })}>移到队首</button></>}
+        {!active && !history && <button onClick={() => setEditing(!editing)}>编辑设置</button>}
         {!active && <button onClick={() => void action({ action: 'remove' })}>{history ? '删除记录' : '移除任务'}</button>}
       </div>{!active && task.directory && <TaskFileManagement task={task} c={c} />}</details>
     </div>

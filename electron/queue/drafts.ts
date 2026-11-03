@@ -40,7 +40,8 @@ export async function enqueue(model: QueueModel, input: EnqueueInput): Promise<T
     encoding: input.encoding ?? old?.encoding ?? model.state.preferences.encoding ?? 'compatible',
     outputStem: old?.outputStem ?? `${model.state.preferences.naming === 'date' ? new Date(time).toISOString().slice(0, 10) + ' ' : ''}${safeStem(draft.info.title)} [${safeStem(draft.info.id)}]`,
     settings: { ...model.state.preferences, mode: input.mode, encoding: input.encoding ?? model.state.preferences.encoding }, directory: old?.directory ?? '', status: 'queued',
-    phase: '等待下载', percent: 0, detail: '', outputs: old?.outputs ?? [], attempt: old?.attempt ?? 0,
+    phase: '等待下载', percent: 0, detail: '', outputs: [...old?.outputs ?? []],
+    checksums: old?.checksums ? { ...old.checksums } : undefined, trashed: old?.trashed, attempt: old?.attempt ?? 0,
     createdAt: old?.createdAt ?? time, updatedAt: time, revision: (old?.revision ?? 0) + 1 };
   if (old) {
     record.info = { ...draft.info, title: old.info.title };

@@ -5,8 +5,8 @@ import type { QueueService } from '../queue/service';
 import { AppError } from '../errors';
 import { TOOL_HELP, type MaintenanceReport } from '../../shared/maintenance';
 import { storageUsage, cleanRecovery, cleanTaskRecovery } from '../files/recovery';
-import { hashFile } from '../files/checksum';
-import { basename, join } from 'node:path';
+import { protectedOutputPath } from '../files/output-identity';
+import { join } from 'node:path';
 import { relinkTask } from '../files/relink';
 import { requireTools } from '../tools';
 import type { ToolSetup } from './tools';
@@ -31,8 +31,7 @@ export function registerMaintenanceIpc(handle: Register, c: Context) {
         if (typeof error === 'object' && error && 'code' in error && error.code === 'ENOENT') return undefined;
         throw error;
       })) continue;
-      const path = await service.taskPath(task.id, i), checksum = task.checksums?.[basename(path)];
-      if (checksum && checksum !== await hashFile(path)) throw new AppError('FILE_IDENTITY', '成果内容已更新，请在 Finder 中管理此文件');
+      const path = await protectedOutputPath(task, i);
       if (testRoot && path.startsWith(testRoot + '/')) await unlink(path);
       else if (!testRoot) await shell.trashItem(path);
     }

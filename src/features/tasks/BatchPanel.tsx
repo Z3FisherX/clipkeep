@@ -4,6 +4,7 @@ import type { Controller } from '../../useDownloader';
 import { isAccessPlatform } from '../../../shared/access';
 import { platformFromInput, supportsBrowserAuth } from '../../../shared/platforms';
 import { batchReady, type BatchController, type BatchItem } from './useBatch';
+import { canRemoveBatchItem } from './batchModel';
 const labels = { waiting: '等待读取', reading: '正在读取', ready: '已读取', failed: '需要处理', skipped: '已跳过', added: '已加入队列' };
 export function BatchPanel({ c, b }: { c: Controller; b: BatchController }) {
   return <section className="batch-panel" aria-label="批量列表">
@@ -28,6 +29,7 @@ function BatchRow({ item, b, c }: { item: BatchItem; b: BatchController; c: Cont
       {item.info.videoCount && <select aria-label="批量视频条目" disabled={b.busy || disabled} value={item.selected ?? ''} onChange={e => void b.run([{ ...item, selected: Number(e.target.value) }])}><option value="">选择帖子视频</option>{Array.from({ length: item.info.videoCount }, (_, i) => <option key={i} value={i + 1}>第 {i + 1} 条</option>)}</select>}
       {item.mode !== 'audio' && item.info.qualities.some(q => q.id === item.qualityId && !q.height) && <label><input type="checkbox" disabled={disabled} checked={!!item.original} onChange={e => b.patch(item.id, { original: e.target.checked })} />使用原始画质</label>}</>}
     <button disabled={b.busy || disabled || c.busy} onClick={() => void b.run([item])}>重读</button>
+    {canRemoveBatchItem(item) && <button disabled={b.adding} onClick={() => b.remove(item.id)}>移除</button>}
     {item.taskId && <button onClick={() => c.focusTask(item.taskId!)}>定位记录</button>}
     {item.error && <><small role="alert">{item.error}</small>
       {supportsBrowserAuth(platformFromInput(item.url)) && <button disabled={b.busy || c.state.mock} onClick={() => void b.run([{ ...item, useBrowser: true }])}>使用 Chrome 登录态重读</button>}

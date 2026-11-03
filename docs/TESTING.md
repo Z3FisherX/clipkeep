@@ -51,3 +51,5 @@
 - `tests/user-experience.test.ts`、`tests/maintenance.test.ts`：事务、幂等、保留期限、硬链接、关联校验、工具缓存与升级安全。
 
 隔离验收证据保存在 `evidence/user-optimization-20261103/`；范围和通过条件见 [范围决策表](USER-OPTIMIZATION-20261103.md)。
+
+独立验收 R01–R06 回归：`tests/acceptance-revisions.test.ts` 覆盖部分成果校验、混合状态排序、首次升级及失败恢复；`npm run test:acceptance-revisions-ui` 覆盖排序边界、并行设置读取及清理刷新、批量输入恢复和逐项移除。
